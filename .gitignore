@@ -1,0 +1,19 @@
+# IDE
+.vscode
+
+# dependencies
+vendor
+composer.lock
+
+# tests
+build
+coverage
+phpunit.xml
+testbench.yaml
+.phpunit.result.cache
+phpstan-baseline.neon
+
+# other
+TODO
+Makefile
+.github/img/socialcard.xcf

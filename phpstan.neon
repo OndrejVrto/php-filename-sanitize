@@ -1,0 +1,17 @@
+parameters:
+    level: max
+
+    paths:
+        - src
+
+    excludePaths:
+        # - src/example.php
+
+    tmpDir: build/phpstan
+
+    checkMissingIterableValueType: true
+
+    checkGenericClassInNonGenericObjectType: false
+
+    ignoreErrors:
+        # - '#example#'

@@ -1,0 +1,54 @@
+{
+    "name": "ondrej-vrto/php-filename-sanitize",
+    "description": "Generates a simple line chart in SVG format using PHP.",
+    "keywords": [
+        "ondrej vrto",
+        "php",
+        "filename",
+        "sanitize",
+        "clean"
+    ],
+    "homepage": "https://github.com/OndrejVrto/php-filename-sanitize",
+    "license": "MIT",
+    "authors": [
+        {
+            "role": "Developer",
+            "name": "Ondrej Vrťo",
+            "email": "ondrej.vrto@gmail.com",
+            "homepage": "https://ondrejvrto.eu"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.2",
+        "pestphp/pest": "^1.20",
+        "phpstan/phpstan": "^1.9",
+        "rector/rector": "^0.15.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "OndrejVrto\\FilenameSanitize\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OndrejVrto\\FilenameSanitize\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
