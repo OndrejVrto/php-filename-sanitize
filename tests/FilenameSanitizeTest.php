@@ -5,7 +5,7 @@ declare(strict_types=1);
 use OndrejVrto\FilenameSanitize\FilenameSanitize;
 
 test('throw exception', function (string $input): void {
-    (new FilenameSanitize($input))->getClean();
+    (new FilenameSanitize($input))->get();
 })
 ->throws(Exception::class)
 ->with([
@@ -15,9 +15,14 @@ test('throw exception', function (string $input): void {
 ]);
 
 test('filename', function (string $input, string $result): void {
-    $output = (new FilenameSanitize($input))->getClean();
+    $output = (new FilenameSanitize($input))->get();
 
     expect($output)->toBe($result);
+
+    // short static format
+    $output2 = FilenameSanitize::of($input)->get();
+
+    expect($output2)->toBe($result);
 })->with([
     'Basic'                           => ['file-name.ext'             , 'file-name.ext'],
     'Multibyte characters'            => ['火|车..票'                  , '火-车.票'],
@@ -52,12 +57,12 @@ test('filename', function (string $input, string $result): void {
 test('directory', function (string $input, string $result1, string $result2): void {
     $output1 = (new FilenameSanitize($input))
         ->withDirectory()
-        ->getClean();
+        ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = (new FilenameSanitize($input))
-        ->getClean();
+        ->get();
 
     expect($output2)->toBe($result2);
 })->with([
@@ -75,14 +80,14 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
         ->withDirectory()
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSurfix('suffix')
-        ->getClean();
+        ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = (new FilenameSanitize($input))
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSurfix('suffix')
-        ->getClean();
+        ->get();
 
     expect($output2)->toBe($result2);
 })->with([
@@ -98,20 +103,20 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
 test('extension', function (string $input, string $result1, string $result2, string $result3, string $result4): void {
     $output1 = (new FilenameSanitize($input))
         ->withNewExtension('webp')
-        ->getClean();
+        ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = (new FilenameSanitize($input))
         ->moveActualExtensionToFilename()
-        ->getClean();
+        ->get();
 
     expect($output2)->toBe($result2);
 
     $output3 = (new FilenameSanitize($input))
         ->moveActualExtensionToFilename()
         ->withNewExtension('webp')
-        ->getClean();
+        ->get();
 
     expect($output3)->toBe($result3);
 
@@ -119,7 +124,7 @@ test('extension', function (string $input, string $result1, string $result2, str
         ->moveActualExtensionToFilename()
         ->widthFilenameSurfix('suffix')
         ->withNewExtension('webp')
-        ->getClean();
+        ->get();
 
     expect($output4)->toBe($result4);
 })->with([

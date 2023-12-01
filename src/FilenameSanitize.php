@@ -42,6 +42,10 @@ final class FilenameSanitize {
             : '';
     }
 
+    public static function of(string $file): self {
+        return (new self($file));
+    }
+
     public function widthFilenamePrefix(string $prefix): self {
         $this->prefix = $this->sanitizePartOfFilename(
             $this->encodingString($prefix)
@@ -78,7 +82,7 @@ final class FilenameSanitize {
         return $this;
     }
 
-    public function getClean(): string {
+    public function get(): string {
         // format:  /directory/sanitize-filenanme.ext
         return sprintf(
             '%s%s',
