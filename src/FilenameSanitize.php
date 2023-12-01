@@ -7,7 +7,7 @@ namespace OndrejVrto\FilenameSanitize;
 use Exception;
 
 final class FilenameSanitize {
-    const SEPARATOR = '-';
+    private const SEPARATOR = '-';
 
     private readonly string $encoding;
     private readonly string $dirname;
@@ -20,9 +20,7 @@ final class FilenameSanitize {
     private bool    $withDirectory   = false;
     private bool    $addOldExtToName = false;
 
-    public function __construct(
-        private string $file,
-    ) {
+    public function __construct(string $file) {
         if (empty($file) || '.' === $file || '..' === $file) {
             throw new Exception("Incorect filename.", 5);
         }
@@ -31,13 +29,13 @@ final class FilenameSanitize {
 
         $path_parts = pathinfo($file);
 
-        $this->dirname = $path_parts['dirname'] === '.'
+        $this->dirname = '.' === $path_parts['dirname']
             ? ''
             : $this->sanitizeDirectory($path_parts['dirname']);
 
         $this->filename = $this->sanitizePartOfFilename($path_parts['filename']);
 
-        $this->extension = key_exists('extension', $path_parts)
+        $this->extension = array_key_exists('extension', $path_parts)
             ? $this->sanitizePartOfFilename($path_parts['extension'])
             : '';
     }
@@ -96,7 +94,9 @@ final class FilenameSanitize {
     }
 
     private function sanitizePartOfFilename(string $filenamePart): string {
-        if (empty($filenamePart)) return '';
+        if (empty($filenamePart)) {
+            return '';
+        }
 
         // Replace special characters
         $filenamePart = preg_replace([
@@ -110,7 +110,9 @@ final class FilenameSanitize {
             '/-+/',                     // reduce consecutive characters "file---name.zip" becomes "file-name.zip"
         ], self::SEPARATOR, $filenamePart);
 
-        if (empty($filenamePart)) return '';
+        if (empty($filenamePart)) {
+            return '';
+        }
 
         // reduce consecutive characters and replace with dot
         $filenamePart = preg_replace([
@@ -118,7 +120,9 @@ final class FilenameSanitize {
             '/\.{2,}/',     // "file...name..zip" becomes "file.name.zip"
         ], '.', $filenamePart);
 
-        if (empty($filenamePart)) return '';
+        if (empty($filenamePart)) {
+            return '';
+        }
 
         // clean start and end string with multiple trim pipe
         return trim(rtrim(rtrim(rtrim($filenamePart), '.'.self::SEPARATOR)), self::SEPARATOR);
@@ -127,13 +131,15 @@ final class FilenameSanitize {
     private function sanitizeDirectory(string $dir): string {
         $tmp = preg_split('/\/|\\\/', $dir);
 
-        if (! $tmp) return '';
+        if ( ! $tmp) {
+            return '';
+        }
 
-        $tmp = array_map(fn(string $dirNode) => $this->sanitizePartOfFilename($dirNode), $tmp);
+        $tmp = array_map(fn (string $dirNode) => $this->sanitizePartOfFilename($dirNode), $tmp);
 
-        $tmp = array_filter($tmp, fn(string $dir) => ! empty($dir));
+        $tmp = array_filter($tmp, fn (string $dir) => ! empty($dir));
 
-        return join(DIRECTORY_SEPARATOR, $tmp);
+        return implode(DIRECTORY_SEPARATOR, $tmp);
     }
 
     private function getformatedFilename(string $filename): string {
@@ -143,26 +149,22 @@ final class FilenameSanitize {
             null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
             $filename,
             null === $this->surfix ? '' : self::SEPARATOR.$this->surfix,
-            $this->addOldExtToName && !empty($this->extension) ? self::SEPARATOR.$this->extension : '',
+            $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
             $this->getExtension(),
         );
-
-        if (empty($tmp)) return '';
 
         // lowercase for windows/unix interoperability https://en.wikipedia.org/wiki/Filename
         return mb_strtolower($tmp, $this->encoding);
     }
 
     private function getExtension(): string {
-        $tmpExt = null === $this->newExtension
-            ? $this->extension
-            : $this->newExtension;
+        $tmpExt = $this->newExtension ?? $this->extension;
 
         return empty($tmpExt) ? "" : ".{$tmpExt}";
     }
 
     private function getDirName(): string {
-        return $this->withDirectory && $this->dirname !== ''
+        return $this->withDirectory && '' !== $this->dirname
             ? DIRECTORY_SEPARATOR.$this->dirname.DIRECTORY_SEPARATOR
             : '';
     }

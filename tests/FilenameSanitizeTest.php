@@ -7,12 +7,12 @@ use OndrejVrto\FilenameSanitize\FilenameSanitize;
 test('throw exception', function (string $input): void {
     (new FilenameSanitize($input))->get();
 })
-->throws(Exception::class)
-->with([
-    'if is using empty string' => '',
-    'if is using prev char'    => '..',
-    'if is using root char'    => '.',
-]);
+    ->throws(Exception::class)
+    ->with([
+        'if is using empty string' => '',
+        'if is using prev char'    => '..',
+        'if is using root char'    => '.',
+    ]);
 
 test('filename', function (string $input, string $result): void {
     $output = (new FilenameSanitize($input))->get();
@@ -61,7 +61,7 @@ test('directory', function (string $input, string $result1, string $result2): vo
 
     expect($output1)->toBe($result1);
 
-    $output2 = (new FilenameSanitize($input))
+    $output2 = FilenameSanitize::of($input)
         ->get();
 
     expect($output2)->toBe($result2);
@@ -84,7 +84,7 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
 
     expect($output1)->toBe($result1);
 
-    $output2 = (new FilenameSanitize($input))
+    $output2 = FilenameSanitize::of($input)
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSurfix('suffix')
         ->get();
@@ -107,7 +107,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     expect($output1)->toBe($result1);
 
-    $output2 = (new FilenameSanitize($input))
+    $output2 = FilenameSanitize::of($input)
         ->moveActualExtensionToFilename()
         ->get();
 
@@ -120,7 +120,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     expect($output3)->toBe($result3);
 
-    $output4 = (new FilenameSanitize($input))
+    $output4 = FilenameSanitize::of($input)
         ->moveActualExtensionToFilename()
         ->widthFilenameSurfix('suffix')
         ->withNewExtension('webp')
