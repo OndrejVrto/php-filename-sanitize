@@ -7,7 +7,7 @@ use OndrejVrto\FilenameSanitize\FilenameSanitize;
 test('throw exception', function (string $input): void {
     (new FilenameSanitize($input))->get();
 })
-    ->throws(Exception::class)
+    ->throws(\ValueError::class)
     ->with([
         'if is using empty string' => '',
         'if is using prev char'    => '..',
@@ -66,13 +66,15 @@ test('directory', function (string $input, string $result1, string $result2): vo
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'       , '\dir\dir\file-name.ext' , 'file-name.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                  , '\火\车-车.票'             , '车-车.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'             , '\dir\dir\.github'       , '.github'],
-    'Only name'                       => ['/dir\dir/filename'            , '\dir\dir\filename'      , 'filename'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'           , '\dir\dir\.env.test'     , '.env.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , '\dir\d-i-r\filename.zip', 'filename.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', '\dir\file-n-a-m-e.zip'  , 'file-n-a-m-e.zip'],
+    'Basic'                           => ['\dir\dir\file-name.ext'        , '\dir\dir\file-name.ext'       , 'file-name.ext'],
+    'Multibyte characters'            => ['火/车~车..票'                   , '火\车-车.票'                    , '车-车.票'],
+    'Only Extencion'                  => ['/dir\dir/.github'              , '\dir\dir\.github'             , '.github'],
+    'Only name'                       => ['/dir\dir/filename'             , '\dir\dir\filename'            , 'filename'],
+    'Multi Extension'                 => ['/dir\dir/.env.test'            , '\dir\dir\.env.test'           , '.env.test'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'dir\d-i-r\filename.zip'       , 'filename.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'dir\file-n-a-m-e.zip'         , 'file-n-a-m-e.zip'],
+    'relative path'                   => ['./..\dir/file-name.zip'        , '.\..\dir\file-name.zip'       , 'file-name.zip'],
+    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , '~\..\..\dir\..\file-name.zip' , 'file-name.zip'],
 ]);
 
 test('prefix and suffix', function (string $input, string $result1, string $result2): void {
@@ -92,12 +94,12 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
     expect($output2)->toBe($result2);
 })->with([
     'Basic'                           => ['\dir\dir\file-name.ext'       , '\dir\dir\prefix-file-name-suffix.ext' , 'prefix-file-name-suffix.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                  , '\火\prefix-车-车-suffix.票'             , 'prefix-车-车-suffix.票'],
+    'Multibyte characters'            => ['火/车~车..票'                  , '火\prefix-车-车-suffix.票'              , 'prefix-车-车-suffix.票'],
     'Only Extencion'                  => ['/dir\dir/.github'             , '\dir\dir\prefix--suffix.github'       , 'prefix--suffix.github'],
     'Only name'                       => ['/dir\dir/filename'            , '\dir\dir\prefix-filename-suffix'      , 'prefix-filename-suffix'],
     'Multi Extension'                 => ['/dir\dir/.env.test'           , '\dir\dir\prefix-.env-suffix.test'     , 'prefix-.env-suffix.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , '\dir\d-i-r\prefix-filename-suffix.zip', 'prefix-filename-suffix.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', '\dir\prefix-file-n-a-m-e-suffix.zip'  , 'prefix-file-n-a-m-e-suffix.zip'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'dir\d-i-r\prefix-filename-suffix.zip' , 'prefix-filename-suffix.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'dir\prefix-file-n-a-m-e-suffix.zip'   , 'prefix-file-n-a-m-e-suffix.zip'],
 ]);
 
 test('extension', function (string $input, string $result1, string $result2, string $result3, string $result4): void {

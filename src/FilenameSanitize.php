@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OndrejVrto\FilenameSanitize;
 
-use Exception;
+use ValueError;
 
 final class FilenameSanitize {
     private const SEPARATOR = '-';
@@ -22,7 +22,7 @@ final class FilenameSanitize {
 
     public function __construct(string $file) {
         if (empty($file) || '.' === $file || '..' === $file) {
-            throw new Exception("Incorect filename.", 5);
+            throw new ValueError("Incorect filename.", 5);
         }
 
         $this->encoding = mb_detect_encoding($file) ?: 'ASCII';
@@ -135,9 +135,19 @@ final class FilenameSanitize {
             return '';
         }
 
-        $tmp = array_map(fn (string $dirNode) => $this->sanitizePartOfFilename($dirNode), $tmp);
+        $tmp = array_map(function (string $dirNode) {
+            if ($dirNode === '.' || $dirNode === '..' || $dirNode === '~') {
+                return $dirNode;
+            }
 
-        $tmp = array_filter($tmp, fn (string $dir) => ! empty($dir));
+            return $this->sanitizePartOfFilename($dirNode);
+        }, $tmp);
+
+        $tmp = array_filter($tmp, fn (string $dirNode) => ! empty($dirNode));
+
+        if (preg_match("/^(\/|\\\).*/", $dir)) {
+            array_unshift($tmp, null);
+        }
 
         return implode(DIRECTORY_SEPARATOR, $tmp);
     }
@@ -165,7 +175,7 @@ final class FilenameSanitize {
 
     private function getDirName(): string {
         return $this->withDirectory && '' !== $this->dirname
-            ? DIRECTORY_SEPARATOR.$this->dirname.DIRECTORY_SEPARATOR
+            ? $this->dirname.DIRECTORY_SEPARATOR
             : '';
     }
 
