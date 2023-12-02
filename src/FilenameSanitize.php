@@ -104,7 +104,7 @@ final class FilenameSanitize {
             '/\/{2,}/',
             '/\/\\\/',
             '#\\\/.*#',
-        ], DIRECTORY_SEPARATOR, $tmp);
+        ], DIRECTORY_SEPARATOR, $tmp) ?? '';
     }
 
 
@@ -157,13 +157,12 @@ final class FilenameSanitize {
             return '';
         }
 
-        $tmp = array_map(function (string $dirNode) {
-            if ($dirNode === '.' || $dirNode === '..' || $dirNode === '~') {
-                return $dirNode;
-            }
-
-            return $this->sanitizePartOfFilename($dirNode);
-        }, $tmp);
+        $tmp = array_map(
+            fn (string $dirNode) => '.' === $dirNode || '..' === $dirNode || '~' === $dirNode
+                ? $dirNode
+                : $this->sanitizePartOfFilename($dirNode),
+            $tmp
+        );
 
         $tmp = array_filter($tmp, fn (string $dirNode) => ! empty($dirNode));
 
