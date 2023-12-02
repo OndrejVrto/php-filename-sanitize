@@ -20,6 +20,10 @@ final class FilenameSanitize {
     private bool    $withDirectory   = false;
     private bool    $addOldExtToName = false;
 
+    public static function of(string $file): self {
+        return (new self($file));
+    }
+
     public function __construct(string $file) {
         if (empty($file) || '.' === $file || '..' === $file) {
             throw new ValueError("Incorect filename.", 5);
@@ -40,10 +44,10 @@ final class FilenameSanitize {
             : '';
     }
 
-    public static function of(string $file): self {
-        return (new self($file));
-    }
 
+    /* -------------------------------------------------------------------------- */
+    /*                              SETTINGS METHODS                              */
+    /* -------------------------------------------------------------------------- */
     public function widthFilenamePrefix(string $prefix): self {
         $this->prefix = $this->sanitizePartOfFilename(
             $this->encodingString($prefix)
@@ -80,6 +84,9 @@ final class FilenameSanitize {
         return $this;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                                MAIN METHODS                                */
+    /* -------------------------------------------------------------------------- */
     public function get(): string {
         // format:  /directory/sanitize-filenanme.ext
         return sprintf(
@@ -89,6 +96,21 @@ final class FilenameSanitize {
         );
     }
 
+    public function getWithBaseDirectory(string $baseDirectory): string {
+        $tmp = $baseDirectory.DIRECTORY_SEPARATOR.$this->get();
+
+        return preg_replace([
+            '/\\\{2,}/',
+            '/\/{2,}/',
+            '/\/\\\/',
+            '#\\\/.*#',
+        ], DIRECTORY_SEPARATOR, $tmp);
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+    /*                           PRIVATE HELPERS METHODS                          */
+    /* -------------------------------------------------------------------------- */
     private function encodingString(string $str): string {
         return mb_convert_encoding($str, $this->encoding) ?: $str;
     }

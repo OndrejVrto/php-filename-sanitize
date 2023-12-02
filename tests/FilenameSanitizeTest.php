@@ -138,3 +138,20 @@ test('extension', function (string $input, string $result1, string $result2, str
     'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'filename.webp'    , 'filename-zip.zip'    , 'filename-zip.webp'    , 'filename-suffix-zip.webp'],
     'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'file-n-a-m-e.webp', 'file-n-a-m-e-zip.zip', 'file-n-a-m-e-zip.webp', 'file-n-a-m-e-suffix-zip.webp'],
 ]);
+
+
+test('base directory', function (string $baseDirectory, string $filename, string $result): void {
+    $output = (new FilenameSanitize($filename))
+        ->withDirectory()
+        ->getWithBaseDirectory($baseDirectory);
+
+    expect($output)->toBe($result);
+})->with([
+    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Unix root'              => ['\tmp\foo\\'     , 'bar\file-name.zip'     , '\tmp\foo\bar\file-name.zip'],
+]);
