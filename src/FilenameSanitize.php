@@ -180,7 +180,7 @@ final class FilenameSanitize {
     }
 
     private function sanitizeDirectory(string $dir): string {
-        $tmp = preg_split('/\/|\\\/', $dir);
+        $tmp = preg_split("#\\\|\/#", $dir);
 
         if ( ! $tmp) {
             return '';
@@ -195,7 +195,7 @@ final class FilenameSanitize {
 
         $tmp = array_filter($tmp, fn (string $dirNode) => ! empty($dirNode));
 
-        if (preg_match("/^(\/|\\\).*/", $dir)) {
+        if (preg_match("#^(\\\|\/).*#", $dir)) {
             array_unshift($tmp, null);
         }
 
