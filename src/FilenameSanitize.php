@@ -226,7 +226,7 @@ final class FilenameSanitize {
             '/\\'.DIRECTORY_SEPARATOR.'/',
             self::SEPARATOR,
             $this->dirname.DIRECTORY_SEPARATOR
-        );
+        ) ?? '';
     }
 
     private function cutFilenameLength(): string {

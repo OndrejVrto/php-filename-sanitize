@@ -1,12 +1,12 @@
 {
     "name": "ondrej-vrto/php-filename-sanitize",
-    "description": "Generates a simple line chart in SVG format using PHP.",
+    "description": "Removes all forbidden characters from the file name or path.",
     "keywords": [
         "ondrej vrto",
-        "php",
         "filename",
         "sanitize",
-        "clean"
+        "clean",
+        "php"
     ],
     "homepage": "https://github.com/OndrejVrto/php-filename-sanitize",
     "license": "MIT",
@@ -19,9 +19,10 @@
         }
     ],
     "require": {
-        "php": "^8.1"
+        "php": ">=4.0.7"
     },
     "require-dev": {
+        "php": "^8.1",
         "laravel/pint": "^1.2",
         "pestphp/pest": "^1.20",
         "phpstan/phpstan": "^1.9",
