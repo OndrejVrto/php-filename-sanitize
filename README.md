@@ -130,22 +130,35 @@ FilenameSanitize::of('file_name.jpg')
 
 ```php
 FilenameSanitize::of('file_name.jpg')
-    ->widthFilenamePrefix('prefix')
     ->widthFilenameSurffix('suffix')
+    ->widthFilenamePrefix('prefix')
     ->get();
 // Output: prefix-file-name-suffix.jpg
 ```
 
-### All features together
+### Default name if sanitized filename is empty
+
+```php
+FilenameSanitize::of(null)
+    ->get();
+// throw ValueError exception
+
+FilenameSanitize::of(null)
+    ->defaultFilename('default-file-name.jpg')
+    ->get();
+// Output: default-file-name.jpg
+```
+
+### A combination of all functions together
 
 ```php
 FilenameSanitize::of('foo2\bar2\file-name.jpg')
-    ->widthFilenamePrefix('prefix')
-    ->widthFilenameSurffix('surfix')
-    ->withBaseDirectory('C:/foo/bar')
     ->moveActualExtensionToFilename()
-    ->withNewExtension('webp')
+    ->withBaseDirectory('C:/foo/bar')
+    ->widthFilenameSurffix('surfix')
+    ->widthFilenamePrefix('prefix')
     ->addDirectoryToFilename()
+    ->withNewExtension('webp')
     ->withDirectory()
     ->get();
 // Output:  C:\foo\bar\foo2\bar2\prefix-foo2-bar2-file-name-surfix-jpg.webp

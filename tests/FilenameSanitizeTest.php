@@ -4,16 +4,6 @@ declare(strict_types=1);
 
 use OndrejVrto\FilenameSanitize\FilenameSanitize;
 
-test('throw exception', function (string $input): void {
-    (new FilenameSanitize($input))->get();
-})
-    ->throws(\ValueError::class)
-    ->with([
-        'if is using empty string' => '',
-        'if is using prev char'    => '..',
-        'if is using root char'    => '.',
-    ]);
-
 test('filename', function (string $input, string $result): void {
     $output = (new FilenameSanitize($input))->get();
 
@@ -235,12 +225,6 @@ test('test from another package', function (string $filename, string $result1, s
     "h?w"                               =>  ["h?w"                               , "h-w"                   , "h-w"],
     "h/w"                               =>  ["h/w"                               , "w"                     , "h\w"],
     "h*w"                               =>  ["h*w"                               , "h-w"                   , "h-w"],
-    "./"                                =>  ["./"                                , ""                      , ""],
-    "../"                               =>  ["../"                               , ""                      , ""],
-    "/.."                               =>  ["/.."                               , ""                      , ""],
-    "/../"                              =>  ["/../"                              , ""                      , ""],
-    "*.|."                              =>  ["*.|."                              , ""                      , ""],
-    "./"                                =>  ["./"                                , ""                      , ""],
     "./foobar"                          =>  ["./foobar"                          , "foobar"                , "foobar"],
     "../foobar"                         =>  ["../foobar"                         , "foobar"                , "..\\foobar"],
     "../../foobar"                      =>  ["../../foobar"                      , "foobar"                , "..\..\\foobar"],
@@ -251,3 +235,36 @@ test('test from another package', function (string $filename, string $result1, s
     "COM5.asdf"                         =>  ["COM5.asdf"                         , ".asdf"                 , ".asdf"],
     "foobar..."                         =>  ["foobar..."                         , "foobar"                , "foobar"],
 ]);
+
+test('default filename string', function (?string $filename, string $result): void {
+    $output1 = FilenameSanitize::of($filename)
+        ->defaultFilename('default-file-name.jpg')
+        ->get();
+
+    expect($output1)->toBe($result);
+})->with([
+    "if is using null"         =>  [null     , "default-file-name.jpg"],
+    "if is using empty string" =>  [""       , "default-file-name.jpg"],
+    "if is using prev char"    =>  [".."     , "default-file-name.jpg"],
+    "if is using prev char 2"  =>  ["../"    , "default-file-name.jpg"],
+    "if is using root char"    =>  ["."      , "default-file-name.jpg"],
+    "if is using root char 2"  =>  ["./"     , "default-file-name.jpg"],
+    "if is using next dir"     =>  ["/.."    , "default-file-name.jpg"],
+    "if is using next dir"     =>  ["/../"   , "default-file-name.jpg"],
+    "with asterix"             =>  ["*.|."   , "default-file-name.jpg"],
+]);
+
+test('throw exception if default filename missing', function (?string $filename): void {
+    FilenameSanitize::of($filename)
+        ->get();
+})->with([
+    "if is using null"         => null,
+    "if is using empty string" => "",
+    "if is using prev char"    => "..",
+    "if is using prev char 2"  => "../",
+    "if is using root char"    => ".",
+    "if is using root char 2"  => "./",
+    "if is using next dir"     => "/..",
+    "if is using next dir"     => "/../",
+    "with asterix"             => "*.|.",
+])->throws(\ValueError::class);

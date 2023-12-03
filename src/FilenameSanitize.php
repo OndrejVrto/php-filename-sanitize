@@ -17,25 +17,24 @@ final class FilenameSanitize {
     private ?string $prefix                 = null;
     private ?string $surffix                = null;
     private ?string $newExtension           = null;
+    private ?string $defaultFilename        = null;
     private ?string $withBaseDirectory      = null;
     private bool    $withDirectory          = false;
     private bool    $addOldExtToName        = false;
     private bool    $addDirectoryToFilename = false;
 
-    public static function of(string $file): self {
+    public static function of(?string $file): self {
         return (new self($file));
     }
 
-    public function __construct(string $file) {
-        if (empty($file) || '.' === $file || '..' === $file) {
-            throw new ValueError("Incorect filename.", 5);
-        }
+    public function __construct(?string $file) {
+        $file ??= '';
 
         $this->encoding = mb_detect_encoding($file) ?: 'ASCII';
 
         $path_parts = pathinfo($file);
 
-        $this->dirname = '.' === $path_parts['dirname']
+        $this->dirname = ! array_key_exists('dirname', $path_parts) || '.' === $path_parts['dirname']
             ? ''
             : $this->sanitizeDirectory($path_parts['dirname']);
 
@@ -82,6 +81,14 @@ final class FilenameSanitize {
         return $this;
     }
 
+    public function defaultFilename(string $defaultFilename): self {
+        $this->defaultFilename = $this->sanitizePartOfFilename(
+            $this->encodingString($defaultFilename)
+        );
+
+        return $this;
+    }
+
     public function moveActualExtensionToFilename(): self {
         $this->addOldExtToName = true;
 
@@ -100,7 +107,7 @@ final class FilenameSanitize {
         return $this;
     }
 
-    /* -------------------------------------------------------------------------- */
+        /* -------------------------------------------------------------------------- */
     /*                                MAIN METHODS                                */
     /* -------------------------------------------------------------------------- */
     public function get(): string {
@@ -215,6 +222,14 @@ final class FilenameSanitize {
             $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
             $this->getExtension(),
         );
+
+        if (empty(trim($tmp))) {
+            if (null === $this->defaultFilename) {
+                throw new ValueError("Empty filename", 5);
+            }
+
+            $tmp = $this->defaultFilename;
+        }
 
         // lowercase for windows/unix interoperability https://en.wikipedia.org/wiki/Filename
         return mb_strtolower($tmp, $this->encoding);
