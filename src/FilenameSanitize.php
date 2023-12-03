@@ -28,19 +28,19 @@ final class FilenameSanitize {
     }
 
     public function __construct(?string $file) {
-        $tmp = null === $file
-            ? ''
-            : $this->changeBackSlashes($file);
+        $tmp = null !== $file
+            ? $this->changeBackSlashes($file)
+            : '';
 
         $this->encoding = mb_detect_encoding($tmp) ?: 'ASCII';
 
         $path_parts = pathinfo($tmp);
 
-        $this->dirname = ! array_key_exists('dirname', $path_parts) || '.' === $path_parts['dirname']
-            ? ''
-            : $this->sanitizeDirectory($path_parts['dirname']);
-
         $this->filename = $this->sanitizePartOfFilename($path_parts['filename']);
+
+        $this->dirname = array_key_exists('dirname', $path_parts) && '.' !== $path_parts['dirname']
+            ? $this->sanitizeDirectory($path_parts['dirname'])
+            : '';
 
         $this->extension = array_key_exists('extension', $path_parts)
             ? $this->sanitizePartOfFilename($path_parts['extension'])
@@ -109,7 +109,7 @@ final class FilenameSanitize {
         return $this;
     }
 
-        /* -------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------- */
     /*                                MAIN METHODS                                */
     /* -------------------------------------------------------------------------- */
     public function get(): string {
@@ -227,7 +227,7 @@ final class FilenameSanitize {
 
         if (empty(trim($tmp))) {
             if (null === $this->defaultFilename) {
-                throw new ValueError("Empty filename", 5);
+                throw new ValueError('Empty filename', 5);
             }
 
             $tmp = $this->defaultFilename;
@@ -240,7 +240,7 @@ final class FilenameSanitize {
     private function getExtension(): string {
         $tmpExt = $this->newExtension ?? $this->extension;
 
-        return empty($tmpExt) ? "" : ".{$tmpExt}";
+        return empty($tmpExt) ? '' : ".{$tmpExt}";
     }
 
     private function getDirectoryName(): string {
@@ -251,9 +251,9 @@ final class FilenameSanitize {
 
     private function getDirectoryForFilename(): string {
         return str_replace(
-            DIRECTORY_SEPARATOR,
-            self::SEPARATOR,
-            $this->dirname.DIRECTORY_SEPARATOR
+            search:  DIRECTORY_SEPARATOR,
+            replace: self::SEPARATOR,
+            subject: $this->dirname.DIRECTORY_SEPARATOR
         );
     }
 
@@ -276,9 +276,9 @@ final class FilenameSanitize {
         $mustCutting = $fullLength - 255;
 
         return mb_strcut(
-            string: $this->filename,
-            start: 0,
-            length: $filenameLength - $mustCutting,
+            string:   $this->filename,
+            start:    0,
+            length:   $filenameLength - $mustCutting,
             encoding: $this->encoding
         );
     }
