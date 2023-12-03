@@ -15,7 +15,7 @@ final class FilenameSanitize {
     private readonly string $extension;
 
     private ?string $prefix                 = null;
-    private ?string $surfix                 = null;
+    private ?string $surffix                = null;
     private ?string $newExtension           = null;
     private ?string $withBaseDirectory      = null;
     private bool    $withDirectory          = false;
@@ -58,9 +58,9 @@ final class FilenameSanitize {
         return $this;
     }
 
-    public function widthFilenameSurfix(string $surfix): self {
-        $this->surfix = $this->sanitizePartOfFilename(
-            $this->encodingString($surfix)
+    public function widthFilenameSurffix(string $surffix): self {
+        $this->surffix = $this->sanitizePartOfFilename(
+            $this->encodingString($surffix)
         );
 
         return $this;
@@ -75,7 +75,9 @@ final class FilenameSanitize {
     }
 
     public function withBaseDirectory(string $baseDirectory): self {
-        $this->withBaseDirectory = $this->encodingString($baseDirectory);
+        $this->withBaseDirectory = $this->sanitizeBaseDirectory(
+            $this->encodingString($baseDirectory)
+        );
 
         return $this;
     }
@@ -193,6 +195,15 @@ final class FilenameSanitize {
         return implode(DIRECTORY_SEPARATOR, $tmp);
     }
 
+    private function sanitizeBaseDirectory(string $dir): string {
+        // replace separators
+        return preg_replace(
+            '/\/|\\\/',
+            DIRECTORY_SEPARATOR,
+            $dir
+        ) ?? '';
+    }
+
     private function getformatedFilename(string $filename): string {
         // Filename format:  prefix-directory-filename-surfix-oldExtension.newExtension
         $tmp = sprintf(
@@ -200,7 +211,7 @@ final class FilenameSanitize {
             null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
             $this->addDirectoryToFilename ? $this->getDirectoryForFilename() : '',
             $filename,
-            null === $this->surfix ? '' : self::SEPARATOR.$this->surfix,
+            null === $this->surffix ? '' : self::SEPARATOR.$this->surffix,
             $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
             $this->getExtension(),
         );

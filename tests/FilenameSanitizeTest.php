@@ -24,7 +24,7 @@ test('filename', function (string $input, string $result): void {
 
     expect($output2)->toBe($result);
 })->with([
-    'Basic'                           => ['file-name.ext'             , 'file-name.ext'],
+    'Ok'                              => ['file-name.ext'             , 'file-name.ext'],
     'Multibyte characters'            => ['火|车..票'                  , '火-车.票'],
     'Only Extencion'                  => ['.github'                   , '.github'],
     'Only name'                       => ['filename'                  , 'filename'],
@@ -83,14 +83,14 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
     $output1 = (new FilenameSanitize($input))
         ->withDirectory()
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurfix('suffix')
+        ->widthFilenameSurffix('suffix')
         ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = FilenameSanitize::of($input)
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurfix('suffix')
+        ->widthFilenameSurffix('suffix')
         ->get();
 
     expect($output2)->toBe($result2);
@@ -127,7 +127,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     $output4 = FilenameSanitize::of($input)
         ->moveActualExtensionToFilename()
-        ->widthFilenameSurfix('suffix')
+        ->widthFilenameSurffix('suffix')
         ->withNewExtension('webp')
         ->get();
 
@@ -151,12 +151,12 @@ test('base directory', function (string $baseDirectory, string $filename, string
 
     expect($output)->toBe($result);
 })->with([
-    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
-    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , 'C:/foo/bar\..\dir\file-name.zip'],
-    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
-    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
-    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
-    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:/foo/bar\..\dir\file-name.zip'],
+    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
+    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , 'C:\foo\bar\..\dir\file-name.zip'],
+    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
+    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
+    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
+    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
     'Unix root'              => ['\tmp\foo\\'     , 'bar\file-name.zip'     , '\tmp\foo\bar\file-name.zip'],
 ]);
 
@@ -175,7 +175,7 @@ test('directory to filename', function (): void {
     $output = FilenameSanitize::of('foo/bar/file-name.zip')
         ->moveActualExtensionToFilename()
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurfix('surfix')
+        ->widthFilenameSurffix('surfix')
         ->withBaseDirectory('C:\baz')
         ->addDirectoryToFilename()
         ->withNewExtension('webp')
@@ -186,8 +186,8 @@ test('directory to filename', function (): void {
 
     $output = FilenameSanitize::of('\foo2\bar2\baz2\long-file-name-12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.zip')
         ->widthFilenamePrefix('looong-prefix')
-        ->widthFilenameSurfix('looong-surfix')
-        ->withBaseDirectory('C:\foo\bar\baz')
+        ->widthFilenameSurffix('looong-surfix')
+        ->withBaseDirectory('C:/foo/bar/baz')
         ->moveActualExtensionToFilename()
         ->withNewExtension('webp')
         ->addDirectoryToFilename()
