@@ -180,9 +180,9 @@ final class FilenameSanitize {
     }
 
     private function sanitizeDirectory(string $dir): string {
-        $tmp = preg_split("#\\\|/#", $dir);
+        $explodedDir = explode('/', rtrim(str_replace('\\', '/', $dir)));
 
-        if ( ! $tmp) {
+        if ( ! $explodedDir) {
             return '';
         }
 
@@ -190,12 +190,12 @@ final class FilenameSanitize {
             fn (string $dirNode) => '.' === $dirNode || '..' === $dirNode || '~' === $dirNode
                 ? $dirNode
                 : $this->sanitizePartOfFilename($dirNode),
-            $tmp
+            $explodedDir
         );
 
         $tmp = array_filter($tmp, fn (string $dirNode) => ! empty($dirNode));
 
-        if (preg_match("#^(\\\|/).*#", $dir)) {
+        if (empty($explodedDir[0])) {
             array_unshift($tmp, null);
         }
 
