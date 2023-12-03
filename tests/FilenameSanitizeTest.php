@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+// Shortcut for directory separator.
+// If is test run in Windows OS => '\'. In Unix OS => '/'.
+define('DS', DIRECTORY_SEPARATOR);
+
 use OndrejVrto\FilenameSanitize\FilenameSanitize;
 
 test('filename', function (string $input, string $result): void {
@@ -40,8 +44,13 @@ test('filename', function (string $input, string $result): void {
         'on-off-again-my-journey-to-stardom.jpg'
     ],
     'long filename to max 255 chars' => [
-        '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.zip',
-        '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901.zip'
+        '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+        .'12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+        .'12345678901234567890123456789012345678901234567890123456789012345678901234567890.zip',
+
+        '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+        .'12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+        .'1234567890123456789012345678901.zip'
     ],
 ]);
 
@@ -57,16 +66,16 @@ test('directory', function (string $input, string $result1, string $result2): vo
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'        , '\dir\dir\file-name.ext'       , 'file-name.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'C\dir\dir\file-name.ext'     , 'file-name.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                   , '火\车-车.票'                    , '车-车.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'              , '\dir\dir\.github'             , '.github'],
-    'Only name'                       => ['/dir\dir/filename'             , '\dir\dir\filename'            , 'filename'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'            , '\dir\dir\.env.test'           , '.env.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'dir\d-i-r\filename.zip'       , 'filename.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'dir\file-n-a-m-e.zip'         , 'file-n-a-m-e.zip'],
-    'relative path'                   => ['./..\dir/file-name.zip'        , '.\..\dir\file-name.zip'       , 'file-name.zip'],
-    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , '~\..\..\dir\..\file-name.zip' , 'file-name.zip'],
+    'Basic'                           => ['\dir\dir\file-name.ext'        , DS.'dir'.DS.'dir'.DS.'file-name.ext'                    , 'file-name.ext'],
+    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'C'.DS.'dir'.DS.'dir'.DS.'file-name.ext'                , 'file-name.ext'],
+    'Multibyte characters'            => ['火/车~车..票'                   , '火'.DS.'车-车.票'                                        , '车-车.票'],
+    'Only Extencion'                  => ['/dir\dir/.github'              , DS.'dir'.DS.'dir'.DS.'.github'                          , '.github'],
+    'Only name'                       => ['/dir\dir/filename'             , DS.'dir'.DS.'dir'.DS.'filename'                         , 'filename'],
+    'Multi Extension'                 => ['/dir\dir/.env.test'            , DS.'dir'.DS.'dir'.DS.'.env.test'                        , '.env.test'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'dir'.DS.'d-i-r'.DS.'filename.zip'                      , 'filename.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'dir'.DS.'file-n-a-m-e.zip'                             , 'file-n-a-m-e.zip'],
+    'relative path'                   => ['./..\dir/file-name.zip'        , '.'.DS.'..'.DS.'dir'.DS.'file-name.zip'                 , 'file-name.zip'],
+    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , '~'.DS.'..'.DS.'..'.DS.'dir'.DS.'..'.DS.'file-name.zip' , 'file-name.zip'],
 ]);
 
 test('prefix and suffix', function (string $input, string $result1, string $result2): void {
@@ -85,14 +94,14 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'       , '\dir\dir\prefix-file-name-suffix.ext'   , 'prefix-file-name-suffix.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'     , 'C\dir\dir\prefix-file-name-suffix.ext' , 'prefix-file-name-suffix.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                  , '火\prefix-车-车-suffix.票'                , 'prefix-车-车-suffix.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'             , '\dir\dir\prefix--suffix.github'         , 'prefix--suffix.github'],
-    'Only name'                       => ['/dir\dir/filename'            , '\dir\dir\prefix-filename-suffix'        , 'prefix-filename-suffix'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'           , '\dir\dir\prefix-.env-suffix.test'       , 'prefix-.env-suffix.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'dir\d-i-r\prefix-filename-suffix.zip'   , 'prefix-filename-suffix.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'dir\prefix-file-n-a-m-e-suffix.zip'     , 'prefix-file-n-a-m-e-suffix.zip'],
+    'Basic'                           => ['\dir\dir\file-name.ext'       , DS.'dir'.DS.'dir'.DS.'prefix-file-name-suffix.ext'     , 'prefix-file-name-suffix.ext'],
+    'Windows'                         => ['C:\dir\dir\file-name.ext'     , 'C'.DS.'dir'.DS.'dir'.DS.'prefix-file-name-suffix.ext' , 'prefix-file-name-suffix.ext'],
+    'Multibyte characters'            => ['火/车~车..票'                  , '火'.DS.'prefix-车-车-suffix.票'                         , 'prefix-车-车-suffix.票'],
+    'Only Extencion'                  => ['/dir\dir/.github'             , DS.'dir'.DS.'dir'.DS.'prefix--suffix.github'           , 'prefix--suffix.github'],
+    'Only name'                       => ['/dir\dir/filename'            , DS.'dir'.DS.'dir'.DS.'prefix-filename-suffix'          , 'prefix-filename-suffix'],
+    'Multi Extension'                 => ['/dir\dir/.env.test'           , DS.'dir'.DS.'dir'.DS.'prefix-.env-suffix.test'         , 'prefix-.env-suffix.test'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'dir'.DS.'d-i-r'.DS.'prefix-filename-suffix.zip'       , 'prefix-filename-suffix.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'dir'.DS.'prefix-file-n-a-m-e-suffix.zip'              , 'prefix-file-n-a-m-e-suffix.zip'],
 ]);
 
 test('extension', function (string $input, string $result1, string $result2, string $result3, string $result4): void {
@@ -141,13 +150,13 @@ test('base directory', function (string $baseDirectory, string $filename, string
 
     expect($output)->toBe($result);
 })->with([
-    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , 'C:\foo\bar\..\dir\file-name.zip'],
-    'Unix root'              => ['\tmp\foo\\'     , 'bar\file-name.zip'     , '\tmp\foo\bar\file-name.zip'],
+    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:".DS."foo".DS."bar".DS."..".DS."dir".DS."file-name.zip"],
+    'Unix root'              => ['\tmp\foo\\'   , 'bar\file-name.zip'      , DS."tmp".DS."foo".DS."bar".DS."file-name.zip"],
 ]);
 
 test('directory to filename', function (): void {
@@ -160,7 +169,7 @@ test('directory to filename', function (): void {
         ->addDirectoryToFilename()
         ->withDirectory()
         ->get();
-    expect($output)->toBe('foo\bar\foo-bar-file-name.zip');
+    expect($output)->toBe("foo".DS."bar".DS."foo-bar-file-name.zip");
 
     $output = FilenameSanitize::of('foo/bar/file-name.zip')
         ->moveActualExtensionToFilename()
@@ -172,9 +181,12 @@ test('directory to filename', function (): void {
         ->withDirectory()
         ->get();
 
-    expect($output)->toBe('C:\baz\foo\bar\prefix-foo-bar-file-name-surfix-zip.webp');
+    expect($output)->toBe("C:".DS."baz".DS."foo".DS."bar".DS."prefix-foo-bar-file-name-surfix-zip.webp");
 
-    $output = FilenameSanitize::of('\foo2\bar2\baz2\long-file-name-12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.zip')
+    $output = FilenameSanitize::of('\foo2\bar2\baz2\long-file-name-'
+    .'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+    .'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+    .'123456789012345678901234567890123456789012345678901234567890.zip')
         ->widthFilenamePrefix('looong-prefix')
         ->widthFilenameSurffix('looong-surfix')
         ->withBaseDirectory('C:/foo/bar/baz')
@@ -184,7 +196,10 @@ test('directory to filename', function (): void {
         ->withDirectory()
         ->get();
 
-    expect($output)->toBe('C:\foo\bar\baz\foo2\bar2\baz2\looong-prefix--foo2-bar2-baz2-long-file-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567-looong-surfix-zip.webp');
+    expect($output)->toBe("C:".DS."foo".DS."bar".DS."baz".DS."foo2".DS."bar2".DS."baz2".DS
+    ."looong-prefix--foo2-bar2-baz2-long-file-name-"
+    ."12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    ."12345678901234567890123456789012345678901234567890123456789012345678901234567-looong-surfix-zip.webp");
 });
 
 test('test from another package', function (string $filename, string $result1, string $result2): void {
@@ -204,8 +219,8 @@ test('test from another package', function (string $filename, string $result1, s
     "hello [enter] world"               =>  ["hello\nworld"                      , "hello-world"           , "hello-world"],
     "semi;colon.js"                     =>  ["semi;colon.js"                     , "semi-colon.js"         , "semi-colon.js"],
     ";leading-semi.js"                  =>  [";leading-semi.js"                  , "leading-semi.js"       , "leading-semi.js"],
-    "slash\\.js"                        =>  ["slash\\.js"                        , ".js"                   , "slash\.js"],
-    "slash/.js"                         =>  ["slash/.js"                         , ".js"                   , "slash\.js"],
+    "slash\\.js"                        =>  ["slash\\.js"                        , ".js"                   , "slash".DS.".js"],
+    "slash/.js"                         =>  ["slash/.js"                         , ".js"                   , "slash".DS.".js"],
     "col:on.js"                         =>  ["col:on.js"                         , "col-on.js"             , "col-on.js"],
     "star*.js"                          =>  ["star*.js"                          , "star.js"               , "star.js"],
     "question?.js"                      =>  ["question?.js"                      , "question.js"           , "question.js"],
@@ -217,18 +232,18 @@ test('test from another package', function (string $filename, string $result1, s
     "'five and six<seven'.js"           =>  ["'five and six<seven'.js"           , "five-and-six-seven.js" , "five-and-six-seven.js"],
     " space at front"                   =>  [" space at front"                   , "space-at-front"        , "space-at-front"],
     "space at end "                     =>  ["space at end "                     , "space-at-end"          , "space-at-end"],
-    "relative/path/to/some/dir"         =>  ["relative/path/to/some/dir"         , "dir"                   , "relative\path\\to\some\dir"],
-    "/abs/path/to/some/dir"             =>  ["/abs/path/to/some/dir"             , "dir"                   , "\abs\path\\to\some\dir"],
-    "~/.\u{0000}notssh/authorized_keys" =>  ["~/.\u{0000}notssh/authorized_keys" , "authorized-keys"       , "~\.\authorized-keys"],
+    "relative/path/to/some/dir"         =>  ["relative/path/to/some/dir"         , "dir"                   , "relative".DS."path".DS."to".DS."some".DS."dir"],
+    "/abs/path/to/some/dir"             =>  ["/abs/path/to/some/dir"             , "dir"                   , "".DS."abs".DS."path".DS."to".DS."some".DS."dir"],
+    "~/.\u{0000}notssh/authorized_keys" =>  ["~/.\u{0000}notssh/authorized_keys" , "authorized-keys"       , "~".DS.".".DS."authorized-keys"],
     ".period"                           =>  [".period"                           , ".period"               , ".period"],
     "period."                           =>  ["period."                           , "period"                , "period"],
     "h?w"                               =>  ["h?w"                               , "h-w"                   , "h-w"],
-    "h/w"                               =>  ["h/w"                               , "w"                     , "h\w"],
+    "h/w"                               =>  ["h/w"                               , "w"                     , "h".DS."w"],
     "h*w"                               =>  ["h*w"                               , "h-w"                   , "h-w"],
     "./foobar"                          =>  ["./foobar"                          , "foobar"                , "foobar"],
-    "../foobar"                         =>  ["../foobar"                         , "foobar"                , "..\\foobar"],
-    "../../foobar"                      =>  ["../../foobar"                      , "foobar"                , "..\..\\foobar"],
-    "./././foobar"                      =>  ["./././foobar"                      , "foobar"                , ".\.\.\\foobar"],
+    "../foobar"                         =>  ["../foobar"                         , "foobar"                , "..".DS."foobar"],
+    "../../foobar"                      =>  ["../../foobar"                      , "foobar"                , "..".DS."..".DS."foobar"],
+    "./././foobar"                      =>  ["./././foobar"                      , "foobar"                , ".".DS.".".DS.".".DS."foobar"],
     "|*.what"                           =>  ["|*.what"                           , ".what"                 , ".what"],
     "LPT9.asdf"                         =>  ["LPT9.asdf"                         , ".asdf"                 , ".asdf"],
     "CON.asdf"                          =>  ["CON.asdf"                          , ".asdf"                 , ".asdf"],
