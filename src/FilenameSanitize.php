@@ -28,11 +28,13 @@ final class FilenameSanitize {
     }
 
     public function __construct(?string $file) {
-        $file ??= '';
+        $tmp = null === $file
+            ? ''
+            : $this->changeBackSlashes($file);
 
-        $this->encoding = mb_detect_encoding($file) ?: 'ASCII';
+        $this->encoding = mb_detect_encoding($tmp) ?: 'ASCII';
 
-        $path_parts = pathinfo($file);
+        $path_parts = pathinfo($tmp);
 
         $this->dirname = ! array_key_exists('dirname', $path_parts) || '.' === $path_parts['dirname']
             ? ''
@@ -74,7 +76,7 @@ final class FilenameSanitize {
     }
 
     public function withBaseDirectory(string $baseDirectory): self {
-        $this->withBaseDirectory = $this->sanitizeBaseDirectory(
+        $this->withBaseDirectory = $this->changeBackSlashes(
             $this->encodingString($baseDirectory)
         );
 
@@ -129,8 +131,6 @@ final class FilenameSanitize {
         return preg_replace([
             '/\\\{2,}/',
             '/\/{2,}/',
-            '/\/\\\/',
-            '#\\\/.*#',
         ], DIRECTORY_SEPARATOR, $tmp) ?? '';
     }
 
@@ -138,6 +138,17 @@ final class FilenameSanitize {
     /* -------------------------------------------------------------------------- */
     /*                           PRIVATE HELPERS METHODS                          */
     /* -------------------------------------------------------------------------- */
+    private function changeBackSlashes(string $dir): string {
+        // replace separators to default
+        // in Windows => "\"
+        // in UNIX => "/"
+        return preg_replace(
+            '/\/|\\\/',
+            DIRECTORY_SEPARATOR,
+            $dir
+        ) ?? '';
+    }
+
     private function encodingString(string $str): string {
         return mb_convert_encoding($str, $this->encoding) ?: $str;
     }
@@ -180,9 +191,9 @@ final class FilenameSanitize {
     }
 
     private function sanitizeDirectory(string $dir): string {
-        $explodedDir = explode('/', rtrim(str_replace('\\', '/', $dir)));
+        $explodedDir = explode(DIRECTORY_SEPARATOR, $dir);
 
-        if ( ! $explodedDir) {
+        if ( ! is_array($explodedDir)) {
             return '';
         }
 
@@ -200,15 +211,6 @@ final class FilenameSanitize {
         }
 
         return implode(DIRECTORY_SEPARATOR, $tmp);
-    }
-
-    private function sanitizeBaseDirectory(string $dir): string {
-        // replace separators
-        return preg_replace(
-            '/\/|\\\/',
-            DIRECTORY_SEPARATOR,
-            $dir
-        ) ?? '';
     }
 
     private function getformatedFilename(string $filename): string {
@@ -248,11 +250,11 @@ final class FilenameSanitize {
     }
 
     private function getDirectoryForFilename(): string {
-        return preg_replace(
-            '/\\'.DIRECTORY_SEPARATOR.'/',
+        return str_replace(
+            DIRECTORY_SEPARATOR,
             self::SEPARATOR,
             $this->dirname.DIRECTORY_SEPARATOR
-        ) ?? '';
+        );
     }
 
     private function cutFilenameLength(): string {
@@ -266,7 +268,7 @@ final class FilenameSanitize {
             return $this->filename;
         }
 
-        $filenameLength =  mb_strlen(
+        $filenameLength = mb_strlen(
             $this->filename,
             $this->encoding
         );
