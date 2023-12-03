@@ -14,11 +14,13 @@ final class FilenameSanitize {
     private readonly string $filename;
     private readonly string $extension;
 
-    private ?string $prefix          = null;
-    private ?string $surfix          = null;
-    private ?string $newExtension    = null;
-    private bool    $withDirectory   = false;
-    private bool    $addOldExtToName = false;
+    private ?string $prefix                 = null;
+    private ?string $surfix                 = null;
+    private ?string $newExtension           = null;
+    private ?string $withBaseDirectory      = null;
+    private bool    $withDirectory          = false;
+    private bool    $addOldExtToName        = false;
+    private bool    $addDirectoryToFilename = false;
 
     public static function of(string $file): self {
         return (new self($file));
@@ -72,8 +74,20 @@ final class FilenameSanitize {
         return $this;
     }
 
+    public function withBaseDirectory(string $baseDirectory): self {
+        $this->withBaseDirectory = $this->encodingString($baseDirectory);
+
+        return $this;
+    }
+
     public function moveActualExtensionToFilename(): self {
         $this->addOldExtToName = true;
+
+        return $this;
+    }
+
+    public function addDirectoryToFilename(): self {
+        $this->addDirectoryToFilename = true;
 
         return $this;
     }
@@ -89,16 +103,20 @@ final class FilenameSanitize {
     /* -------------------------------------------------------------------------- */
     public function get(): string {
         // format:  /directory/sanitize-filenanme.ext
-        return sprintf(
+        $tmp = sprintf(
             '%s%s',
-            $this->getDirName(),
+            $this->getDirectoryName(),
             $this->getformatedFilename($this->cutFilenameLength())
         );
-    }
 
-    public function getWithBaseDirectory(string $baseDirectory): string {
-        $tmp = $baseDirectory.DIRECTORY_SEPARATOR.$this->get();
+        if (null === $this->withBaseDirectory) {
+            return $tmp;
+        }
 
+        // format:  C:/base/dir/directory/sanitize-filenanme.ext
+        $tmp = $this->withBaseDirectory.DIRECTORY_SEPARATOR.$tmp;
+
+        // remove multiple separators
         return preg_replace([
             '/\\\{2,}/',
             '/\/{2,}/',
@@ -130,6 +148,8 @@ final class FilenameSanitize {
             '/ +/',                     // reduce consecutive characters "file   name.zip" becomes "file-name.zip"
             '/_+/',                     // reduce consecutive characters "file___name.zip" becomes "file-name.zip"
             '/-+/',                     // reduce consecutive characters "file---name.zip" becomes "file-name.zip"
+            '/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i',     // Do not use the Windows reserved names. https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+
         ], self::SEPARATOR, $filenamePart);
 
         if (empty($filenamePart)) {
@@ -174,10 +194,11 @@ final class FilenameSanitize {
     }
 
     private function getformatedFilename(string $filename): string {
-        // Filename format:  prefix-filename-surfix-oldExtension.newExtension
+        // Filename format:  prefix-directory-filename-surfix-oldExtension.newExtension
         $tmp = sprintf(
-            '%s%s%s%s%s',
+            '%s%s%s%s%s%s',
             null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
+            $this->addDirectoryToFilename ? $this->getDirectoryForFilename() : '',
             $filename,
             null === $this->surfix ? '' : self::SEPARATOR.$this->surfix,
             $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
@@ -194,10 +215,18 @@ final class FilenameSanitize {
         return empty($tmpExt) ? "" : ".{$tmpExt}";
     }
 
-    private function getDirName(): string {
+    private function getDirectoryName(): string {
         return $this->withDirectory && '' !== $this->dirname
             ? $this->dirname.DIRECTORY_SEPARATOR
             : '';
+    }
+
+    private function getDirectoryForFilename(): string {
+        return preg_replace(
+            '/\\'.DIRECTORY_SEPARATOR.'/',
+            self::SEPARATOR,
+            $this->dirname.DIRECTORY_SEPARATOR
+        );
     }
 
     private function cutFilenameLength(): string {
