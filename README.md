@@ -82,12 +82,12 @@ FilenameSanitize::of($filename)->get();
 
 ```php
 FilenameSanitize::of('/some#/di[]r/file#name.jpg')
-    ->withDirectory()
+    ->withSubdirectory()
     ->get();
 // Output: \some\dir\file-name.jpg
 
 FilenameSanitize::of('/some#/di[]r/file#name.jpg')
-    ->addDirectoryToFilename()
+    ->addSubdirectoryToFilename()
     ->get();
 // Output: some-dir-file-name.jpg
 
@@ -99,8 +99,8 @@ FilenameSanitize::of('/some#/di[]r/file#name.jpg')
 // together
 FilenameSanitize::of('/some#/di[]r/file#name.jpg')
     ->withBaseDirectory("/base/directory")
-    ->addDirectoryToFilename()
-    ->withDirectory()
+    ->addSubdirectoryToFilename()
+    ->withSubdirectory()
     ->get();
 // Output: \base\directory\some\dir\some-dir-file-name.jpg
 ```
@@ -114,13 +114,13 @@ FilenameSanitize::of('file_name.jpg')
 // Output: file-name.webp
 
 FilenameSanitize::of('file_name.jpg')
-    ->moveActualExtensionToFilename()
+    ->addActualExtensionToFilename()
     ->get();
 // Output: file-name-jpg.jpg
 
 // together
 FilenameSanitize::of('file_name.jpg')
-    ->moveActualExtensionToFilename()
+    ->addActualExtensionToFilename()
     ->withNewExtension('webp')
     ->get();
 // Output: file-name-jpg.webp
@@ -153,13 +153,13 @@ FilenameSanitize::of(null)
 
 ```php
 FilenameSanitize::of('foo2\bar2\file-name.jpg')
-    ->moveActualExtensionToFilename()
+    ->addActualExtensionToFilename()
     ->withBaseDirectory('C:/foo/bar')
     ->widthFilenameSurffix('surfix')
     ->widthFilenamePrefix('prefix')
-    ->addDirectoryToFilename()
+    ->addSubdirectoryToFilename()
     ->withNewExtension('webp')
-    ->withDirectory()
+    ->withSubdirectory()
     ->get();
 // Output:  C:\foo\bar\foo2\bar2\prefix-foo2-bar2-file-name-surfix-jpg.webp
 ```

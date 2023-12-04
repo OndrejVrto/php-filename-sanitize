@@ -19,10 +19,11 @@ final class FilenameSanitize {
     private ?string $newExtension           = null;
     private ?string $defaultFilename        = null;
     private ?string $withBaseDirectory      = null;
-    private bool    $withDirectory          = false;
+    private bool    $withSubdirectory       = false;
     private bool    $addOldExtToName        = false;
-    private bool    $addDirectoryToFilename = false;
+    private bool    $addSubdirectoryToFilename = false;
 
+    // handle static instance of this class
     public static function of(?string $file): self {
         return (new self($file));
     }
@@ -39,7 +40,7 @@ final class FilenameSanitize {
         $this->filename = $this->sanitizePartOfFilename($path_parts['filename']);
 
         $this->dirname = array_key_exists('dirname', $path_parts) && '.' !== $path_parts['dirname']
-            ? $this->sanitizeDirectory($path_parts['dirname'])
+            ? $this->sanitizeSubdirectory($path_parts['dirname'])
             : '';
 
         $this->extension = array_key_exists('extension', $path_parts)
@@ -91,20 +92,20 @@ final class FilenameSanitize {
         return $this;
     }
 
-    public function moveActualExtensionToFilename(): self {
+    public function addActualExtensionToFilename(): self {
         $this->addOldExtToName = true;
 
         return $this;
     }
 
-    public function addDirectoryToFilename(): self {
-        $this->addDirectoryToFilename = true;
+    public function addSubdirectoryToFilename(): self {
+        $this->addSubdirectoryToFilename = true;
 
         return $this;
     }
 
-    public function withDirectory(): self {
-        $this->withDirectory = true;
+    public function withSubdirectory(): self {
+        $this->withSubdirectory = true;
 
         return $this;
     }
@@ -116,32 +117,34 @@ final class FilenameSanitize {
         // format:  /directory/sanitize-filenanme.ext
         $tmp = sprintf(
             '%s%s',
-            $this->getDirectoryName(),
+            $this->getSubdirectoryName(),
             $this->getformatedFilename($this->cutFilenameLength())
         );
 
-        if (null === $this->withBaseDirectory) {
-            return $tmp;
+        if (null !== $this->withBaseDirectory) {
+            // format:  C:/base/dir/directory/sanitize-filenanme.ext
+            $tmp = $this->withBaseDirectory.DIRECTORY_SEPARATOR.$tmp;
         }
 
-        // format:  C:/base/dir/directory/sanitize-filenanme.ext
-        $tmp = $this->withBaseDirectory.DIRECTORY_SEPARATOR.$tmp;
-
         // remove multiple separators
-        return preg_replace([
-            '/\\\{2,}/',
-            '/\/{2,}/',
-        ], DIRECTORY_SEPARATOR, $tmp) ?? '';
+        return preg_replace(
+            ['/\\\{2,}/', '/\/{2,}/'],
+            DIRECTORY_SEPARATOR,
+            $tmp
+        ) ?? '';
     }
 
 
     /* -------------------------------------------------------------------------- */
     /*                           PRIVATE HELPERS METHODS                          */
     /* -------------------------------------------------------------------------- */
+
+    /**
+     * Change all delimiters to default according to the operating system you are using
+     *   in Windows => "\"
+     *   in UNIX    => "/"
+     */
     private function changeBackSlashes(string $dir): string {
-        // replace separators to default
-        // in Windows => "\"
-        // in UNIX => "/"
         return preg_replace(
             '/\/|\\\/',
             DIRECTORY_SEPARATOR,
@@ -149,10 +152,16 @@ final class FilenameSanitize {
         ) ?? '';
     }
 
+    /**
+     * We convert all used strings into the source format
+     */
     private function encodingString(string $str): string {
         return mb_convert_encoding($str, $this->encoding) ?: $str;
     }
 
+    /**
+     * Sanitizes the file name.
+     */
     private function sanitizePartOfFilename(string $filenamePart): string {
         if (empty($filenamePart)) {
             return '';
@@ -190,13 +199,17 @@ final class FilenameSanitize {
         return trim(rtrim(rtrim(rtrim($filenamePart), '.'.self::SEPARATOR)), self::SEPARATOR);
     }
 
-    private function sanitizeDirectory(string $dir): string {
+    /**
+     * Cleans individual parts of the directory
+     */
+    private function sanitizeSubdirectory(string $dir): string {
         $explodedDir = explode(DIRECTORY_SEPARATOR, $dir);
 
         if ( ! is_array($explodedDir)) {
             return '';
         }
 
+        // sanitize directory nodes except for three special cases
         $tmp = array_map(
             fn (string $dirNode) => '.' === $dirNode || '..' === $dirNode || '~' === $dirNode
                 ? $dirNode
@@ -204,27 +217,26 @@ final class FilenameSanitize {
             $explodedDir
         );
 
-        $tmp = array_filter($tmp, fn (string $dirNode) => ! empty($dirNode));
-
-        if (empty($explodedDir[0])) {
-            array_unshift($tmp, null);
-        }
-
+        // join directory nodes to path
         return implode(DIRECTORY_SEPARATOR, $tmp);
     }
 
+    /**
+     * Processes the new file name including prefixes, suffixes or other features
+     */
     private function getformatedFilename(string $filename): string {
         // Filename format:  prefix-directory-filename-surfix-oldExtension.newExtension
         $tmp = sprintf(
             '%s%s%s%s%s%s',
             null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
-            $this->addDirectoryToFilename ? $this->getDirectoryForFilename() : '',
+            $this->addSubdirectoryToFilename ? $this->getSubdirectoryForFilename() : '',
             $filename,
             null === $this->surffix ? '' : self::SEPARATOR.$this->surffix,
             $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
             $this->getExtension(),
         );
 
+        // if filename is empty after sanitize, throw Exception or return default filename
         if (empty(trim($tmp))) {
             if (null === $this->defaultFilename) {
                 throw new ValueError('Empty filename', 5);
@@ -237,19 +249,30 @@ final class FilenameSanitize {
         return mb_strtolower($tmp, $this->encoding);
     }
 
+    /**
+     *  Returns the extension that was specified
+     *  from the file name in the constructor of this class or a new extension.
+     */
     private function getExtension(): string {
         $tmpExt = $this->newExtension ?? $this->extension;
 
         return empty($tmpExt) ? '' : ".{$tmpExt}";
     }
 
-    private function getDirectoryName(): string {
-        return $this->withDirectory && '' !== $this->dirname
+    /**
+     *  Returns the value of the subdirectory that was specified
+     *  from the file name in the constructor of this class.
+     */
+    private function getSubdirectoryName(): string {
+        return $this->withSubdirectory && '' !== $this->dirname
             ? $this->dirname.DIRECTORY_SEPARATOR
             : '';
     }
 
-    private function getDirectoryForFilename(): string {
+    /**
+     * Slugable directory - replaces all separators with commas
+     */
+    private function getSubdirectoryForFilename(): string {
         return str_replace(
             search:  DIRECTORY_SEPARATOR,
             replace: self::SEPARATOR,
@@ -257,17 +280,23 @@ final class FilenameSanitize {
         );
     }
 
+    /**
+     * Cut filename length to 255 bytes http://serverfault.com/a/9548/44086
+     * is used multibyte operations
+     */
     private function cutFilenameLength(): string {
-        // cut filename length to 255 bytes http://serverfault.com/a/9548/44086
+        // the base length of the fully qualified file name
         $fullLength = mb_strlen(
             $this->getformatedFilename($this->filename),
             $this->encoding
         );
 
+        // if the length is shorter than 255 characters, everything is OK
         if ($fullLength <= 255) {
             return $this->filename;
         }
 
+        // calculates the required number of characters for truncation
         $filenameLength = mb_strlen(
             $this->filename,
             $this->encoding
@@ -275,6 +304,8 @@ final class FilenameSanitize {
 
         $mustCutting = $fullLength - 255;
 
+        // shortens only of the file name by the required number of characters
+        // prefix, surffix and other additional information will not be shortened
         return mb_strcut(
             string:   $this->filename,
             start:    0,

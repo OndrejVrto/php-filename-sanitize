@@ -56,7 +56,7 @@ test('filename', function (string $input, string $result): void {
 
 test('directory', function (string $input, string $result1, string $result2): void {
     $output1 = (new FilenameSanitize($input))
-        ->withDirectory()
+        ->withSubdirectory()
         ->get();
 
     expect($output1)->toBe($result1);
@@ -80,7 +80,7 @@ test('directory', function (string $input, string $result1, string $result2): vo
 
 test('prefix and suffix', function (string $input, string $result1, string $result2): void {
     $output1 = (new FilenameSanitize($input))
-        ->withDirectory()
+        ->withSubdirectory()
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSurffix('suffix')
         ->get();
@@ -112,20 +112,20 @@ test('extension', function (string $input, string $result1, string $result2, str
     expect($output1)->toBe($result1);
 
     $output2 = FilenameSanitize::of($input)
-        ->moveActualExtensionToFilename()
+        ->addActualExtensionToFilename()
         ->get();
 
     expect($output2)->toBe($result2);
 
     $output3 = (new FilenameSanitize($input))
-        ->moveActualExtensionToFilename()
+        ->addActualExtensionToFilename()
         ->withNewExtension('webp')
         ->get();
 
     expect($output3)->toBe($result3);
 
     $output4 = FilenameSanitize::of($input)
-        ->moveActualExtensionToFilename()
+        ->addActualExtensionToFilename()
         ->widthFilenameSurffix('suffix')
         ->withNewExtension('webp')
         ->get();
@@ -145,7 +145,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 test('base directory', function (string $baseDirectory, string $filename, string $result): void {
     $output = (new FilenameSanitize($filename))
         ->withBaseDirectory($baseDirectory)
-        ->withDirectory()
+        ->withSubdirectory()
         ->get();
 
     expect($output)->toBe($result);
@@ -161,24 +161,24 @@ test('base directory', function (string $baseDirectory, string $filename, string
 
 test('directory to filename', function (): void {
     $output = FilenameSanitize::of('C:/foo/bar/file-name.zip')
-        ->addDirectoryToFilename()
+        ->addSubdirectoryToFilename()
         ->get();
     expect($output)->toBe('c-foo-bar-file-name.zip');
 
     $output = FilenameSanitize::of('foo/bar/file-name.zip')
-        ->addDirectoryToFilename()
-        ->withDirectory()
+        ->addSubdirectoryToFilename()
+        ->withSubdirectory()
         ->get();
     expect($output)->toBe("foo".DS."bar".DS."foo-bar-file-name.zip");
 
     $output = FilenameSanitize::of('foo/bar/file-name.zip')
-        ->moveActualExtensionToFilename()
+        ->addActualExtensionToFilename()
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSurffix('surfix')
         ->withBaseDirectory('C:\baz')
-        ->addDirectoryToFilename()
+        ->addSubdirectoryToFilename()
         ->withNewExtension('webp')
-        ->withDirectory()
+        ->withSubdirectory()
         ->get();
 
     expect($output)->toBe("C:".DS."baz".DS."foo".DS."bar".DS."prefix-foo-bar-file-name-surfix-zip.webp");
@@ -190,10 +190,10 @@ test('directory to filename', function (): void {
         ->widthFilenamePrefix('looong-prefix')
         ->widthFilenameSurffix('looong-surfix')
         ->withBaseDirectory('C:/foo/bar/baz')
-        ->moveActualExtensionToFilename()
+        ->addActualExtensionToFilename()
         ->withNewExtension('webp')
-        ->addDirectoryToFilename()
-        ->withDirectory()
+        ->addSubdirectoryToFilename()
+        ->withSubdirectory()
         ->get();
 
     expect($output)->toBe("C:".DS."foo".DS."bar".DS."baz".DS."foo2".DS."bar2".DS."baz2".DS
@@ -209,7 +209,7 @@ test('test from another package', function (string $filename, string $result1, s
     expect($output1)->toBe($result1);
 
     $output2 = FilenameSanitize::of($filename)
-        ->withDirectory()
+        ->withSubdirectory()
         ->get();
 
     expect($output2)->toBe($result2);
