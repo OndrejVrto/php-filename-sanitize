@@ -82,14 +82,14 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
     $output1 = (new FilenameSanitize($input))
         ->withSubdirectory()
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurffix('suffix')
+        ->widthFilenameSuffix('suffix')
         ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = FilenameSanitize::of($input)
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurffix('suffix')
+        ->widthFilenameSuffix('suffix')
         ->get();
 
     expect($output2)->toBe($result2);
@@ -126,7 +126,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     $output4 = FilenameSanitize::of($input)
         ->addActualExtensionToFilename()
-        ->widthFilenameSurffix('suffix')
+        ->widthFilenameSuffix('suffix')
         ->withNewExtension('webp')
         ->get();
 
@@ -174,7 +174,7 @@ test('directory to filename', function (): void {
     $output = FilenameSanitize::of('foo/bar/file-name.zip')
         ->addActualExtensionToFilename()
         ->widthFilenamePrefix('prefix')
-        ->widthFilenameSurffix('surfix')
+        ->widthFilenameSuffix('surfix')
         ->withBaseDirectory('C:\baz')
         ->addSubdirectoryToFilename()
         ->withNewExtension('webp')
@@ -188,7 +188,7 @@ test('directory to filename', function (): void {
     .'1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
     .'123456789012345678901234567890123456789012345678901234567890.zip')
         ->widthFilenamePrefix('looong-prefix')
-        ->widthFilenameSurffix('looong-surfix')
+        ->widthFilenameSuffix('looong-surfix')
         ->withBaseDirectory('C:/foo/bar/baz')
         ->addActualExtensionToFilename()
         ->withNewExtension('webp')

@@ -15,7 +15,7 @@ final class FilenameSanitize {
     private readonly string $extension;
 
     private ?string $prefix                 = null;
-    private ?string $surffix                = null;
+    private ?string $suffix                = null;
     private ?string $newExtension           = null;
     private ?string $defaultFilename        = null;
     private ?string $withBaseDirectory      = null;
@@ -60,9 +60,9 @@ final class FilenameSanitize {
         return $this;
     }
 
-    public function widthFilenameSurffix(string $surffix): self {
-        $this->surffix = $this->sanitizePartOfFilename(
-            $this->encodingString($surffix)
+    public function widthFilenameSuffix(string $suffix): self {
+        $this->suffix = $this->sanitizePartOfFilename(
+            $this->encodingString($suffix)
         );
 
         return $this;
@@ -231,7 +231,7 @@ final class FilenameSanitize {
             null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
             $this->addSubdirectoryToFilename ? $this->getSubdirectoryForFilename() : '',
             $filename,
-            null === $this->surffix ? '' : self::SEPARATOR.$this->surffix,
+            null === $this->suffix ? '' : self::SEPARATOR.$this->suffix,
             $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
             $this->getExtension(),
         );
@@ -305,7 +305,7 @@ final class FilenameSanitize {
         $mustCutting = $fullLength - 255;
 
         // shortens only of the file name by the required number of characters
-        // prefix, surffix and other additional information will not be shortened
+        // prefix, suffix and other additional information will not be shortened
         return mb_strcut(
             string:   $this->filename,
             start:    0,

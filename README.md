@@ -126,11 +126,11 @@ FilenameSanitize::of('file_name.jpg')
 // Output: file-name-jpg.webp
 ```
 
-### Prefix, surffix features
+### Prefix, suffix features
 
 ```php
 FilenameSanitize::of('file_name.jpg')
-    ->widthFilenameSurffix('suffix')
+    ->widthFilenameSuffix('suffix')
     ->widthFilenamePrefix('prefix')
     ->get();
 // Output: prefix-file-name-suffix.jpg
@@ -155,7 +155,7 @@ FilenameSanitize::of(null)
 FilenameSanitize::of('foo2\bar2\file-name.jpg')
     ->addActualExtensionToFilename()
     ->withBaseDirectory('C:/foo/bar')
-    ->widthFilenameSurffix('surfix')
+    ->widthFilenameSuffix('surfix')
     ->widthFilenamePrefix('prefix')
     ->addSubdirectoryToFilename()
     ->withNewExtension('webp')
