@@ -6,7 +6,7 @@ namespace OndrejVrto\FilenameSanitize;
 
 use ValueError;
 
-final class FilenameSanitize {
+class FilenameSanitize {
     private const SEPARATOR = '-';
 
     private readonly string $encoding;
@@ -14,13 +14,13 @@ final class FilenameSanitize {
     private readonly string $filename;
     private readonly string $extension;
 
-    private ?string $prefix                 = null;
-    private ?string $suffix                = null;
-    private ?string $newExtension           = null;
-    private ?string $defaultFilename        = null;
-    private ?string $withBaseDirectory      = null;
-    private bool    $withSubdirectory       = false;
-    private bool    $addOldExtToName        = false;
+    private ?string $prefix                    = null;
+    private ?string $suffix                    = null;
+    private ?string $newExtension              = null;
+    private ?string $defaultFilename           = null;
+    private ?string $withBaseDirectory         = null;
+    private bool    $withSubdirectory          = false;
+    private bool    $addOldExtToName           = false;
     private bool    $addSubdirectoryToFilename = false;
 
     // handle static instance of this class
