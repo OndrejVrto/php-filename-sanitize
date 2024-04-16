@@ -143,7 +143,7 @@ class FilenameSanitize {
 
         if (null !== $this->withBaseDirectory) {
             // format:  C:/base/dir/directory/sanitize-filenanme.ext
-            $tmp = $this->withBaseDirectory.DIRECTORY_SEPARATOR.$tmp;
+            $tmp = $this->withBaseDirectory . DIRECTORY_SEPARATOR . $tmp;
         }
 
         // remove multiple separators
@@ -212,7 +212,7 @@ class FilenameSanitize {
         }
 
         // clean start and end string with multiple trim pipe
-        return trim(rtrim(rtrim(rtrim($filenamePart), '.'.$this->separator)), $this->separator);
+        return trim(rtrim(rtrim(rtrim($filenamePart), '.' . $this->separator)), $this->separator);
     }
 
     /**
@@ -264,11 +264,11 @@ class FilenameSanitize {
         // Filename format:  prefix-directory-filename-surfix-oldExtension.newExtension
         $tmp = sprintf(
             '%s%s%s%s%s%s',
-            null === $this->prefix ? '' : $this->prefix.$this->separator,
+            null === $this->prefix ? '' : $this->prefix . $this->separator,
             $this->addSubdirectoryToFilename ? $this->getSubdirectoryForFilename() : '',
             $filename,
-            null === $this->suffix ? '' : $this->separator.$this->suffix,
-            $this->addOldExtToName && ! empty($this->extension) ? $this->separator.$this->extension : '',
+            null === $this->suffix ? '' : $this->separator . $this->suffix,
+            $this->addOldExtToName && ! empty($this->extension) ? $this->separator . $this->extension : '',
             $this->getExtension(),
         );
 
@@ -301,7 +301,7 @@ class FilenameSanitize {
      */
     private function getSubdirectoryName(): string {
         return $this->withSubdirectory && '' !== $this->dirname
-            ? $this->dirname.DIRECTORY_SEPARATOR
+            ? $this->dirname . DIRECTORY_SEPARATOR
             : '';
     }
 
@@ -312,7 +312,7 @@ class FilenameSanitize {
         return str_replace(
             search:  DIRECTORY_SEPARATOR,
             replace: self::DEFAULT_SEPARATOR,
-            subject: $this->dirname.DIRECTORY_SEPARATOR
+            subject: $this->dirname . DIRECTORY_SEPARATOR
         );
     }
 
