@@ -14,12 +14,12 @@ class FilenameSanitize {
     private readonly string $originalFilename;
     private readonly string $originalExtension;
 
+    private string  $filename  = '';
     private string  $separator = self::DEFAULT_SEPARATOR;
 
     private ?string $prefix                    = null;
     private ?string $suffix                    = null;
     private ?string $dirname                   = null;
-    private ?string $filename                  = null;
     private ?string $extension                 = null;
     private ?string $newExtension              = null;
     private ?string $defaultFilename           = null;
