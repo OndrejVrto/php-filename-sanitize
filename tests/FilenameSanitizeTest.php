@@ -34,6 +34,8 @@ test('filename', function (string $input, string $result): void {
     'Reduce consecutive characters'   => ['file--.--.-.--name.zip'    , 'file.name.zip'],
     'URI reserved characters'         => ['file-name|#[]&@()+,;=.zip' , 'file-name.zip'],
     'js script'                       => ['<script>alert(1);</script>', 'script'],
+    'Non-breaking space'              => ['file' . mb_chr(0xA0, 'UTF-8') . 'name.ext', 'file-name.ext'],
+    'Null character'                  => ['file' . mb_chr(0x00, 'UTF-8') . 'name.ext', 'file-name.ext'],
 
     'php function' => [
         '<?php malicious_function(); ?>`rm -rf `',
