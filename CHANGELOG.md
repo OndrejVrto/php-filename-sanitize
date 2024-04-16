@@ -2,6 +2,19 @@
 
 All notable changes to `php-filename-sanitize` will be documented in this file.
 
+## 1.5.0 - 2024-04-16
+
+### What's Changed
+
+* Fix a bug in Regex for non-printing characters
+* Update README.md by @williamdes in https://github.com/OndrejVrto/php-filename-sanitize/pull/8
+
+### New Contributors
+
+* @williamdes made their first contribution in https://github.com/OndrejVrto/php-filename-sanitize/pull/8
+
+**Full Changelog**: https://github.com/OndrejVrto/php-filename-sanitize/compare/1.4.1...1.5.0
+
 ## 1.4.1 - 2023-12-06
 
 Remove fnal from class
