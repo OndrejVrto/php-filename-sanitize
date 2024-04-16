@@ -23,7 +23,7 @@ test('filename', function (string $input, string $result): void {
     'Only Extencion'                  => ['.github'                   , '.github'],
     'Only name'                       => ['filename'                  , 'filename'],
     'Multi Extension'                 => ['.env.test'                 , '.env.test'],
-    'Upper case'                      => ['File NaME.Zip'             , 'file-name.zip'],
+    'Upper case with one spane'       => ['File NaME.Zip'             , 'file-name.zip'],
     'Multiple underscores'            => ['file___name.zip'           , 'file-name.zip'],
     'Multiple dashes'                 => ['file---name.zip'           , 'file-name.zip'],
     'Multiple dots'                   => ['file...name..zip'          , 'file.name.zip'],
@@ -143,6 +143,26 @@ test('extension', function (string $input, string $result1, string $result2, str
     'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'file-n-a-m-e.webp', 'file-n-a-m-e-zip.zip', 'file-n-a-m-e-zip.webp', 'file-n-a-m-e-suffix-zip.webp'],
 ]);
 
+test('separator', function (string $separator, string $result): void {
+    $output = (new FilenameSanitize('file~name.ext'))
+        ->customSeparator($separator)
+        ->get();
+
+    expect($output)->toBe($result);
+})->with([
+    'Empty'                             => [''   , 'file-name.ext'],
+    'Spaces'                            => ['  ' , 'file-name.ext'],
+    'Not alowed dots'                   => ['...', 'file-name.ext'],
+    'Default separator'                 => ['-'  , 'file-name.ext'],
+    'Not alowed separator'              => ['/'  , 'file-name.ext'],
+
+    'String'                            => ['www', 'filewwwname.ext'],
+    'Numbers'                           => ['000', 'file000name.ext'],
+    'Tree dashes'                       => ['---', 'file---name.ext'],
+    'Tree under dashes'                 => ['___', 'file___name.ext'],
+    'Combine alowed chars'              => ['-_-', 'file-_-name.ext'],
+    'Combination bad and aloowed chars' => ['?_>', 'file_name.ext'],
+]);
 
 test('base directory', function (string $baseDirectory, string $filename, string $result): void {
     $output = (new FilenameSanitize($filename))

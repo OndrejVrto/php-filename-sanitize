@@ -7,15 +7,20 @@ namespace OndrejVrto\FilenameSanitize;
 use ValueError;
 
 class FilenameSanitize {
-    private const SEPARATOR = '-';
+    private const DEFAULT_SEPARATOR = '-';
 
     private readonly string $encoding;
-    private readonly string $dirname;
-    private readonly string $filename;
-    private readonly string $extension;
+    private readonly string $originalDirname;
+    private readonly string $originalFilename;
+    private readonly string $originalExtension;
+
+    private string  $separator = self::DEFAULT_SEPARATOR;
 
     private ?string $prefix                    = null;
     private ?string $suffix                    = null;
+    private ?string $dirname                   = null;
+    private ?string $filename                  = null;
+    private ?string $extension                 = null;
     private ?string $newExtension              = null;
     private ?string $defaultFilename           = null;
     private ?string $withBaseDirectory         = null;
@@ -33,18 +38,18 @@ class FilenameSanitize {
             ? $this->changeBackSlashes($file)
             : '';
 
+        $pathInfo = pathinfo($tmp);
+
         $this->encoding = mb_detect_encoding($tmp) ?: 'ASCII';
 
-        $path_parts = pathinfo($tmp);
+        $this->originalFilename = $pathInfo['filename'];
 
-        $this->filename = $this->sanitizePartOfFilename($path_parts['filename']);
-
-        $this->dirname = array_key_exists('dirname', $path_parts) && '.' !== $path_parts['dirname']
-            ? $this->sanitizeSubdirectory($path_parts['dirname'])
+        $this->originalDirname = array_key_exists('dirname', $pathInfo) && '.' !== $pathInfo['dirname']
+            ? $pathInfo['dirname']
             : '';
 
-        $this->extension = array_key_exists('extension', $path_parts)
-            ? $this->sanitizePartOfFilename($path_parts['extension'])
+        $this->originalExtension = array_key_exists('extension', $pathInfo)
+            ? $pathInfo['extension']
             : '';
     }
 
@@ -92,6 +97,14 @@ class FilenameSanitize {
         return $this;
     }
 
+    public function customSeparator(string $separator): self {
+        $this->separator = $this->sanitizeSeparator(
+            $this->encodingString($separator)
+        );
+
+        return $this;
+    }
+
     public function addActualExtensionToFilename(): self {
         $this->addOldExtToName = true;
 
@@ -110,10 +123,17 @@ class FilenameSanitize {
         return $this;
     }
 
+
     /* -------------------------------------------------------------------------- */
     /*                                MAIN METHODS                                */
     /* -------------------------------------------------------------------------- */
     public function get(): string {
+        $this->dirname = $this->sanitizeSubdirectory($this->originalDirname);
+
+        $this->filename = $this->sanitizePartOfFilename($this->originalFilename);
+
+        $this->extension = $this->sanitizePartOfFilename($this->originalExtension);
+
         // format:  /directory/sanitize-filenanme.ext
         $tmp = sprintf(
             '%s%s',
@@ -173,12 +193,9 @@ class FilenameSanitize {
             '/[\x00-\x1F\x7F\xA0]/u',   // non-printing characters DEL, NO-BREAK SPACE, SOFT HYPHEN https://stackoverflow.com/questions/1176904/how-to-remove-all-non-printable-characters-in-a-string
             '/[#\[\]@!$&\'()+,;=]/',    // URI reserved https://www.rfc-editor.org/rfc/rfc3986#section-2.2
             '/[{}^\~`]/',               // URL unsafe characters https://www.ietf.org/rfc/rfc1738.txt
-            '/ +/',                     // reduce consecutive characters "file   name.zip" becomes "file-name.zip"
-            '/_+/',                     // reduce consecutive characters "file___name.zip" becomes "file-name.zip"
-            '/-+/',                     // reduce consecutive characters "file---name.zip" becomes "file-name.zip"
+            '/[ _-]+/',                 // reduce consecutive characters "file   name.zip", file___name.zip" or "file---name.zip" becomes "file-name.zip"
             '/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i',     // Do not use the Windows reserved names. https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
-
-        ], self::SEPARATOR, $filenamePart);
+        ], $this->separator, $filenamePart);
 
         if (empty($filenamePart)) {
             return '';
@@ -195,7 +212,7 @@ class FilenameSanitize {
         }
 
         // clean start and end string with multiple trim pipe
-        return trim(rtrim(rtrim(rtrim($filenamePart), '.'.self::SEPARATOR)), self::SEPARATOR);
+        return trim(rtrim(rtrim(rtrim($filenamePart), '.'.$this->separator)), $this->separator);
     }
 
     /**
@@ -220,6 +237,26 @@ class FilenameSanitize {
         return implode(DIRECTORY_SEPARATOR, $tmp);
     }
 
+    private function sanitizeSeparator(string $separator): string {
+        if (empty($separator)) {
+            return self::DEFAULT_SEPARATOR;
+        }
+
+        // Replace special characters in separator
+        $separator = preg_replace([
+            '/[<>:"\/\\\|?*]/',         // file system reserved https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
+            '/[\x00-\x1F\x7F\xA0]/u',   // non-printing characters DEL, NO-BREAK SPACE, SOFT HYPHEN https://stackoverflow.com/questions/1176904/how-to-remove-all-non-printable-characters-in-a-string
+            '/[#\[\]@!$&\'()+,;=]/',    // URI reserved https://www.rfc-editor.org/rfc/rfc3986#section-2.2
+            '/[{}^\~`]/',               // URL unsafe characters https://www.ietf.org/rfc/rfc1738.txt
+            '/[ \\.]*/',                // remove spaces and dots
+            '/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i',     // Do not use the Windows reserved names. https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+        ], '', $separator);
+
+        return empty($separator)
+            ? self::DEFAULT_SEPARATOR
+            : $separator;
+    }
+
     /**
      * Processes the new file name including prefixes, suffixes or other features
      */
@@ -227,11 +264,11 @@ class FilenameSanitize {
         // Filename format:  prefix-directory-filename-surfix-oldExtension.newExtension
         $tmp = sprintf(
             '%s%s%s%s%s%s',
-            null === $this->prefix ? '' : $this->prefix.self::SEPARATOR,
+            null === $this->prefix ? '' : $this->prefix.$this->separator,
             $this->addSubdirectoryToFilename ? $this->getSubdirectoryForFilename() : '',
             $filename,
-            null === $this->suffix ? '' : self::SEPARATOR.$this->suffix,
-            $this->addOldExtToName && ! empty($this->extension) ? self::SEPARATOR.$this->extension : '',
+            null === $this->suffix ? '' : $this->separator.$this->suffix,
+            $this->addOldExtToName && ! empty($this->extension) ? $this->separator.$this->extension : '',
             $this->getExtension(),
         );
 
@@ -269,12 +306,12 @@ class FilenameSanitize {
     }
 
     /**
-     * Slugable directory - replaces all separators with commas
+     * Slugable directory - replaces all directory separators with commas
      */
     private function getSubdirectoryForFilename(): string {
         return str_replace(
             search:  DIRECTORY_SEPARATOR,
-            replace: self::SEPARATOR,
+            replace: self::DEFAULT_SEPARATOR,
             subject: $this->dirname.DIRECTORY_SEPARATOR
         );
     }

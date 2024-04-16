@@ -149,6 +149,17 @@ FilenameSanitize::of(null)
 // Output: default-file-name.jpg
 ```
 
+### Custom separator
+
+```php
+FilenameSanitize::of('file#name.jpg')
+    ->customSeparator('_-_')
+    ->get();
+// Output: file_-_name.jpg
+```
+
+Warning: Changing the separator can sometimes lead to unwanted side effects.
+
 ### A combination of all functions together
 
 ```php
@@ -159,9 +170,10 @@ FilenameSanitize::of('foo2\bar2\file-name.jpg')
     ->widthFilenamePrefix('prefix')
     ->addSubdirectoryToFilename()
     ->withNewExtension('webp')
+    ->customSeparator('_')
     ->withSubdirectory()
     ->get();
-// Output:  C:\foo\bar\foo2\bar2\prefix-foo2-bar2-file-name-surfix-jpg.webp
+// Output:  C:\foo\bar\foo2\bar2\prefix_foo2_bar2_file_name_surfix_jpg.webp
 ```
 
 ## Testing
