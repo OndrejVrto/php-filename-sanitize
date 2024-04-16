@@ -22,7 +22,7 @@ composer require ondrej-vrto/php-filename-sanitize
 ## Basic usage
 
 ```php
-use OndrejVrto\FilenameSanitize;
+use OndrejVrto\FilenameSanitize\FilenameSanitize;
 
 $filename = '[file#name].jpg';
 
