@@ -26,6 +26,7 @@ test('filename', function (string $input, string $result): void {
     'Only Extencion'                  => ['.github'                   , '.github'],
     'Only name'                       => ['filename'                  , 'filename'],
     'Multi Extension'                 => ['.env.test'                 , '.env.test'],
+    'Default separator in begining'   => ['-file#name.ext'            , 'file-name.ext'],
     'Upper case with one spane'       => ['File NaME.Zip'             , 'file-name.zip'],
     'Multiple underscores'            => ['file___name.zip'           , 'file-name.zip'],
     'Multiple dashes'                 => ['file---name.zip'           , 'file-name.zip'],
@@ -39,7 +40,6 @@ test('filename', function (string $input, string $result): void {
     'js script'                       => ['<script>alert(1);</script>', 'script'],
     'Non-breaking space'              => ['file' . mb_chr(0xA0, 'UTF-8') . 'name.ext', 'file-name.ext'],
     'Null character'                  => ['file' . mb_chr(0x00, 'UTF-8') . 'name.ext', 'file-name.ext'],
-
     'php function' => [
         '<?php malicious_function(); ?>`rm -rf `',
         'php-malicious-function-rm-rf'
@@ -61,31 +61,30 @@ test('filename', function (string $input, string $result): void {
 
 test('directory', function (string $input, string $result1, string $result2): void {
     $output1 = (new FilenameSanitize($input))
-        ->withSubdirectory()
         ->get();
 
     expect($output1)->toBe($result1);
 
     $output2 = FilenameSanitize::of($input)
+        ->withSubdirectory()
         ->get();
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'        , DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'                    , 'file-name.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'C' . DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'                , 'file-name.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                   , '火' . DS . '车-车.票'                                        , '车-车.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'              , DS . 'dir' . DS . 'dir' . DS . '.github'                          , '.github'],
-    'Only name'                       => ['/dir\dir/filename'             , DS . 'dir' . DS . 'dir' . DS . 'filename'                         , 'filename'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'            , DS . 'dir' . DS . 'dir' . DS . '.env.test'                        , '.env.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'dir' . DS . 'd-i-r' . DS . 'filename.zip'                      , 'filename.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'dir' . DS . 'file-n-a-m-e.zip'                             , 'file-n-a-m-e.zip'],
-    'relative path'                   => ['./..\dir/file-name.zip'        , '.' . DS . '..' . DS . 'dir' . DS . 'file-name.zip'                 , 'file-name.zip'],
-    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , '~' . DS . '..' . DS . '..' . DS . 'dir' . DS . '..' . DS . 'file-name.zip' , 'file-name.zip'],
+    'Basic'                           => ['\dir\dir\file-name.ext'        , 'file-name.ext'    , DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
+    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'file-name.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
+    'Multibyte characters'            => ['火/车~车..票'                    , '车-车.票'         , '火' . DS . '车-车.票'],
+    'Only Extencion'                  => ['/dir\dir/.github'              , '.github'          , DS . 'dir' . DS . 'dir' . DS . '.github'],
+    'Only name'                       => ['/dir\dir/filename'             , 'filename'         , DS . 'dir' . DS . 'dir' . DS . 'filename'],
+    'Multi Extension'                 => ['/dir\dir/.env.test'            , '.env.test'        , DS . 'dir' . DS . 'dir' . DS . '.env.test'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'filename.zip'     , 'dir' . DS . 'd-i-r' . DS . 'filename.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'file-n-a-m-e.zip' , 'dir' . DS . 'file-n-a-m-e.zip'],
+    'relative path'                   => ['./..\dir/file-name.zip'        , 'file-name.zip'    , '.' . DS . '..' . DS . 'dir' . DS . 'file-name.zip'],
+    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , 'file-name.zip'    , '~' . DS . '..' . DS . '..' . DS . 'dir' . DS . '..' . DS . 'file-name.zip'],
 ]);
 
 test('prefix and suffix', function (string $input, string $result1, string $result2): void {
     $output1 = (new FilenameSanitize($input))
-        ->withSubdirectory()
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSuffix('suffix')
         ->get();
@@ -95,18 +94,19 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
     $output2 = FilenameSanitize::of($input)
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSuffix('suffix')
+        ->withSubdirectory()
         ->get();
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'       , DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'     , 'prefix-file-name-suffix.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'     , 'C' . DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext' , 'prefix-file-name-suffix.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                  , '火' . DS . 'prefix-车-车-suffix.票'                         , 'prefix-车-车-suffix.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'             , DS . 'dir' . DS . 'dir' . DS . 'prefix--suffix.github'           , 'prefix--suffix.github'],
-    'Only name'                       => ['/dir\dir/filename'            , DS . 'dir' . DS . 'dir' . DS . 'prefix-filename-suffix'          , 'prefix-filename-suffix'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'           , DS . 'dir' . DS . 'dir' . DS . 'prefix-.env-suffix.test'         , 'prefix-.env-suffix.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'dir' . DS . 'd-i-r' . DS . 'prefix-filename-suffix.zip'       , 'prefix-filename-suffix.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'dir' . DS . 'prefix-file-n-a-m-e-suffix.zip'              , 'prefix-file-n-a-m-e-suffix.zip'],
+    'Basic'                           => ['\dir\dir\file-name.ext'        , 'prefix-file-name-suffix.ext'    , DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
+    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'prefix-file-name-suffix.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
+    'Multibyte characters'            => ['火/车~车..票'                    , 'prefix-车-车-suffix.票'          , '火' . DS . 'prefix-车-车-suffix.票'],
+    'Only Extencion'                  => ['/dir\dir/.github'              , 'prefix--suffix.github'          , DS . 'dir' . DS . 'dir' . DS . 'prefix--suffix.github'],
+    'Only name'                       => ['/dir\dir/filename'             , 'prefix-filename-suffix'         , DS . 'dir' . DS . 'dir' . DS . 'prefix-filename-suffix'],
+    'Multi Extension'                 => ['/dir\dir/.env.test'            , 'prefix-.env-suffix.test'        , DS . 'dir' . DS . 'dir' . DS . 'prefix-.env-suffix.test'],
+    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'prefix-filename-suffix.zip'     , 'dir' . DS . 'd-i-r' . DS . 'prefix-filename-suffix.zip'],
+    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'prefix-file-n-a-m-e-suffix.zip' , 'dir' . DS . 'prefix-file-n-a-m-e-suffix.zip'],
 ]);
 
 test('extension', function (string $input, string $result1, string $result2, string $result3, string $result4): void {
