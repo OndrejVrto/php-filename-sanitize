@@ -178,6 +178,18 @@ test('separator', function (string $separator, string $result): void {
     'String with same letter in begining' => ['f', 'ilefname.ext'],
 ]);
 
+test('lowercase letters', function (string $input, string $result): void {
+    $output = FilenameSanitize::of($input)
+        ->disableLowerCase()
+        ->get();
+
+    expect($output)->toBe($result);
+})->with([
+    'All upper case letters'   => ['FILE*NAME.EXT' , 'FILE-NAME.EXT'],
+    'All lower case letters'   => ['file*name.ext' , 'file-name.ext'],
+    'Combination case letters' => ['FilE*NamE.Ext' , 'FilE-NamE.Ext'],
+]);
+
 test('base directory', function (string $baseDirectory, string $filename, string $result): void {
     $output = FilenameSanitize::of($filename)
         ->withBaseDirectory($baseDirectory)

@@ -24,6 +24,7 @@ class FilenameSanitize {
     private ?string $newExtension              = null;
     private ?string $defaultFilename           = null;
     private ?string $withBaseDirectory         = null;
+    private bool    $disableLowerCase          = false;
     private bool    $withSubdirectory          = false;
     private bool    $addOldExtToName           = false;
     private bool    $addSubdirectoryToFilename = false;
@@ -119,6 +120,12 @@ class FilenameSanitize {
 
     public function withSubdirectory(): self {
         $this->withSubdirectory = true;
+
+        return $this;
+    }
+
+    public function disableLowerCase(): self {
+        $this->disableLowerCase = true;
 
         return $this;
     }
@@ -286,7 +293,9 @@ class FilenameSanitize {
         }
 
         // lowercase for windows/unix interoperability https://en.wikipedia.org/wiki/Filename
-        return mb_strtolower($tmp, $this->encoding);
+        return $this->disableLowerCase
+            ? $tmp
+            : mb_strtolower($tmp, $this->encoding);
     }
 
     /**

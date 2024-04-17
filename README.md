@@ -149,6 +149,15 @@ FilenameSanitize::of(null)
 // Output: default-file-name.jpg
 ```
 
+### Disable conversion to lowercase letters
+
+```php
+FilenameSanitize::of('File*NAME.Ext')
+    ->disableLowerCase()
+    ->get();
+// Output: File-NAME.Ext
+```
+
 ### Custom separator
 
 ```php
