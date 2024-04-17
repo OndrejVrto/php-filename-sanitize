@@ -183,7 +183,7 @@ class FilenameSanitize {
      * Sanitizes the file name.
      */
     private function sanitizePartOfFilename(string $filenamePart): string {
-        if (empty($filenamePart)) {
+        if (empty($filenamePart) && '0' !== $filenamePart) {
             return '';
         }
 
@@ -197,7 +197,7 @@ class FilenameSanitize {
             '/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i',     // Do not use the Windows reserved names. https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
         ], $this->separator, $filenamePart);
 
-        if (empty($filenamePart)) {
+        if (empty($filenamePart) && '0' !== $filenamePart) {
             return '';
         }
 
@@ -207,7 +207,7 @@ class FilenameSanitize {
             '/\.{2,}/',     // "file...name..zip" becomes "file.name.zip"
         ], '.', $filenamePart);
 
-        if (empty($filenamePart)) {
+        if (empty($filenamePart) && '0' !== $filenamePart) {
             return '';
         }
 
@@ -272,8 +272,10 @@ class FilenameSanitize {
             $this->getExtension(),
         );
 
+        $tmp = trim($tmp);
+
         // if filename is empty after sanitize, throw Exception or return default filename
-        if (empty(trim($tmp))) {
+        if (empty($tmp) && '0' !== $tmp) {
             if (null === $this->defaultFilename) {
                 throw new ValueError('Empty filename', 5);
             }
@@ -292,7 +294,9 @@ class FilenameSanitize {
     private function getExtension(): string {
         $tmpExt = $this->newExtension ?? $this->extension;
 
-        return empty($tmpExt) ? '' : ".{$tmpExt}";
+        return empty($tmpExt) && '0' !== $tmpExt
+            ? ''
+            : ".{$tmpExt}";
     }
 
     /**

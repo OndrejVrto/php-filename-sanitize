@@ -19,6 +19,9 @@ test('filename', function (string $input, string $result): void {
     expect($output2)->toBe($result);
 })->with([
     'Ok'                              => ['file-name.ext'             , 'file-name.ext'],
+    'Zero'                            => ['0'                         , '0'],
+    'Zero with extension'             => ['0.ext'                     , '0.ext'],
+    'Zero number in extension'        => ['file.0'                    , 'file.0'],
     'Multibyte characters'            => ['火|车..票'                  , '火-车.票'],
     'Only Extencion'                  => ['.github'                   , '.github'],
     'Only name'                       => ['filename'                  , 'filename'],
