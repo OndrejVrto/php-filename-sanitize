@@ -153,18 +153,28 @@ test('separator', function (string $separator, string $result): void {
 
     expect($output)->toBe($result);
 })->with([
-    'Empty'                             => [''   , 'file-name.ext'],
-    'Spaces'                            => ['  ' , 'file-name.ext'],
-    'Not alowed dots'                   => ['...', 'file-name.ext'],
-    'Default separator'                 => ['-'  , 'file-name.ext'],
-    'Not alowed separator'              => ['/'  , 'file-name.ext'],
-
-    'String'                            => ['www', 'filewwwname.ext'],
-    'Numbers'                           => ['000', 'file000name.ext'],
-    'Tree dashes'                       => ['---', 'file---name.ext'],
-    'Tree under dashes'                 => ['___', 'file___name.ext'],
-    'Combine alowed chars'              => ['-_-', 'file-_-name.ext'],
-    'Combination bad and aloowed chars' => ['?_>', 'file_name.ext'],
+    // Not alowed characters
+    'Empty'                         => [''  , 'file-name.ext'],
+    'Dot'                           => ['.' , 'file-name.ext'],
+    'Dots'                          => ['..', 'file-name.ext'],
+    'Multi byte char'               => ['票', 'file-name.ext'],
+    'Default separator'             => ['-' , 'file-name.ext'],
+    'Not alowed Hashtag'            => ['#' , 'file-name.ext'],
+    'Not alowed Backslash'          => ['/' , 'file-name.ext'],
+    'Not alowed Non-breaking space' => [mb_chr(0xA0, 'UTF-8'), 'file-name.ext'],
+    'Not alowed Nul character'      => [mb_chr(0x00, 'UTF-8'), 'file-name.ext'],
+    // Alowed characters
+    'Spaces'                            => ['   ', 'file   name.ext'],
+    'String'                            => ['xxx', 'filexxxname.ext'],
+    'Zero'                              => ['0'  , 'file0name.ext'],
+    'Numbers'                           => ['012', 'file012name.ext'],
+    'Under dash'                        => ['___', 'file___name.ext'],
+    'Combine alowed chars'              => ['_--', 'file_--name.ext'],
+    'Combination bad and aloowed chars' => ['?>_', 'file_name.ext'],
+    // Strange behavior: Individual separator characters are removed from the beginning and end of the file name and extension.
+    'String with same letter'             => ['ef', 'ileefnam.xt'],
+    'String with same letter in end'      => ['e', 'fileenam.xt'],
+    'String with same letter in begining' => ['f', 'ilefname.ext'],
 ]);
 
 test('base directory', function (string $baseDirectory, string $filename, string $result): void {

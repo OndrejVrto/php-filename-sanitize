@@ -211,8 +211,11 @@ class FilenameSanitize {
             return '';
         }
 
-        // clean start and end string with multiple trim pipe
-        return trim(rtrim(rtrim(rtrim($filenamePart), '.' . $this->separator)), $this->separator);
+        // clean start and end string
+        $filenamePart = trim($filenamePart, " \n\r\t\v\0\{{$this->separator}}");
+
+        // delete file extension separator at the end
+        return rtrim($filenamePart, ".");
     }
 
     /**
@@ -237,22 +240,21 @@ class FilenameSanitize {
         return implode(DIRECTORY_SEPARATOR, $tmp);
     }
 
+    /**
+     * Sanitizes the custom separator.
+     */
     private function sanitizeSeparator(string $separator): string {
-        if (empty($separator)) {
-            return self::DEFAULT_SEPARATOR;
-        }
-
-        // Replace special characters in separator
+        // remove special characters
         $separator = preg_replace([
-            '/[<>:"\/\\\|?*]/',         // file system reserved https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
-            '/[\x00-\x1F\x7F\xA0]/u',   // non-printing characters DEL, NO-BREAK SPACE, SOFT HYPHEN https://stackoverflow.com/questions/1176904/how-to-remove-all-non-printable-characters-in-a-string
-            '/[#\[\]@!$&\'()+,;=]/',    // URI reserved https://www.rfc-editor.org/rfc/rfc3986#section-2.2
-            '/[{}^\~`]/',               // URL unsafe characters https://www.ietf.org/rfc/rfc1738.txt
-            '/[ \\.]*/',                // remove spaces and dots
-            '/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i',     // Do not use the Windows reserved names. https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+            '/[{}^\~`]/',               // URL unsafe characters
+            '/[<>:"\/\\\|?*]/',         // file system reserved characters
+            '/[#\[\]@!$&\'()+,;=]/',    // URI reserved characters
+            '/[\x00-\x1F\x7F\xA0]/u',   // non-printing characters
+            '/\.+/',                    // dots
         ], '', $separator);
 
-        return empty($separator)
+        // return set of allowed chars or default value
+        return null === $separator || '' === $separator
             ? self::DEFAULT_SEPARATOR
             : $separator;
     }
