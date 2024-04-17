@@ -2,6 +2,16 @@
 
 All notable changes to `php-filename-sanitize` will be documented in this file.
 
+## 1.6.0 - 2024-04-17
+
+### What's Changed
+
+* New feature:  switch to disable conversion to lowercase letters
+* New feature:  setting custom character separator
+* Fix a bug: if the file name or extension is the number zero
+
+**Full Changelog**: https://github.com/OndrejVrto/php-filename-sanitize/compare/1.5.0...1.6.0
+
 ## 1.5.0 - 2024-04-16
 
 ### What's Changed
