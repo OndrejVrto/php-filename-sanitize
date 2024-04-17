@@ -60,7 +60,7 @@ test('filename', function (string $input, string $result): void {
 ]);
 
 test('directory', function (string $input, string $result1, string $result2): void {
-    $output1 = (new FilenameSanitize($input))
+    $output1 = FilenameSanitize::of($input)
         ->get();
 
     expect($output1)->toBe($result1);
@@ -71,20 +71,21 @@ test('directory', function (string $input, string $result1, string $result2): vo
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'        , 'file-name.ext'    , DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'file-name.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                    , '车-车.票'         , '火' . DS . '车-车.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'              , '.github'          , DS . 'dir' . DS . 'dir' . DS . '.github'],
-    'Only name'                       => ['/dir\dir/filename'             , 'filename'         , DS . 'dir' . DS . 'dir' . DS . 'filename'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'            , '.env.test'        , DS . 'dir' . DS . 'dir' . DS . '.env.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'filename.zip'     , 'dir' . DS . 'd-i-r' . DS . 'filename.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'file-n-a-m-e.zip' , 'dir' . DS . 'file-n-a-m-e.zip'],
-    'relative path'                   => ['./..\dir/file-name.zip'        , 'file-name.zip'    , '.' . DS . '..' . DS . 'dir' . DS . 'file-name.zip'],
-    'relative path 2'                 => ['~/../..\dir/../file-name.zip'  , 'file-name.zip'    , '~' . DS . '..' . DS . '..' . DS . 'dir' . DS . '..' . DS . 'file-name.zip'],
+    'Basic'                   => ['\dir\dir\file-name.ext'        , 'file-name.ext'    , DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
+    'Windows'                 => ['C:\dir\dir\file-name.ext'      , 'file-name.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'file-name.ext'],
+    'Multibyte characters'    => ['火/车~车..票'                    , '车-车.票'         , '火' . DS . '车-车.票'],
+    'Only Extencion'          => ['/dir\dir/.github'              , '.github'          , DS . 'dir' . DS . 'dir' . DS . '.github'],
+    'Only name'               => ['/dir\dir/filename'             , 'filename'         , DS . 'dir' . DS . 'dir' . DS . 'filename'],
+    'Multi Extension'         => ['/dir\dir/.env.test'            , '.env.test'        , DS . 'dir' . DS . 'dir' . DS . '.env.test'],
+    'URL unsafe characters'   => ['~dir/-{d}i^r/filename.[zip]'   , 'filename.zip'     , 'dir' . DS . 'd-i-r' . DS . 'filename.zip'],
+    'URI reserved characters' => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'file-n-a-m-e.zip' , 'dir' . DS . 'file-n-a-m-e.zip'],
+    'relative path'           => ['./..\dir/file-name.zip'        , 'file-name.zip'    , '.' . DS . '..' . DS . 'dir' . DS . 'file-name.zip'],
+    'relative path 2'         => ['~/../..\dir/../file-name.zip'  , 'file-name.zip'    , '~' . DS . '..' . DS . '..' . DS . 'dir' . DS . '..' . DS . 'file-name.zip'],
+    'script'                  => ['<script>alert(1);</script>'    , 'script'           , 'script-alert-1' . DS . 'script'],
 ]);
 
 test('prefix and suffix', function (string $input, string $result1, string $result2): void {
-    $output1 = (new FilenameSanitize($input))
+    $output1 = FilenameSanitize::of($input)
         ->widthFilenamePrefix('prefix')
         ->widthFilenameSuffix('suffix')
         ->get();
@@ -99,18 +100,18 @@ test('prefix and suffix', function (string $input, string $result1, string $resu
 
     expect($output2)->toBe($result2);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'        , 'prefix-file-name-suffix.ext'    , DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
-    'Windows'                         => ['C:\dir\dir\file-name.ext'      , 'prefix-file-name-suffix.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
-    'Multibyte characters'            => ['火/车~车..票'                    , 'prefix-车-车-suffix.票'          , '火' . DS . 'prefix-车-车-suffix.票'],
-    'Only Extencion'                  => ['/dir\dir/.github'              , 'prefix--suffix.github'          , DS . 'dir' . DS . 'dir' . DS . 'prefix--suffix.github'],
-    'Only name'                       => ['/dir\dir/filename'             , 'prefix-filename-suffix'         , DS . 'dir' . DS . 'dir' . DS . 'prefix-filename-suffix'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'            , 'prefix-.env-suffix.test'        , DS . 'dir' . DS . 'dir' . DS . 'prefix-.env-suffix.test'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'   , 'prefix-filename-suffix.zip'     , 'dir' . DS . 'd-i-r' . DS . 'prefix-filename-suffix.zip'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'prefix-file-n-a-m-e-suffix.zip' , 'dir' . DS . 'prefix-file-n-a-m-e-suffix.zip'],
+    'Basic'                   => ['\dir\dir\file-name.ext'        , 'prefix-file-name-suffix.ext'    , DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
+    'Windows'                 => ['C:\dir\dir\file-name.ext'      , 'prefix-file-name-suffix.ext'    , 'C' . DS . 'dir' . DS . 'dir' . DS . 'prefix-file-name-suffix.ext'],
+    'Multibyte characters'    => ['火/车~车..票'                    , 'prefix-车-车-suffix.票'          , '火' . DS . 'prefix-车-车-suffix.票'],
+    'Only Extencion'          => ['/dir\dir/.github'              , 'prefix--suffix.github'          , DS . 'dir' . DS . 'dir' . DS . 'prefix--suffix.github'],
+    'Only name'               => ['/dir\dir/filename'             , 'prefix-filename-suffix'         , DS . 'dir' . DS . 'dir' . DS . 'prefix-filename-suffix'],
+    'Multi Extension'         => ['/dir\dir/.env.test'            , 'prefix-.env-suffix.test'        , DS . 'dir' . DS . 'dir' . DS . 'prefix-.env-suffix.test'],
+    'URL unsafe characters'   => ['~dir/-{d}i^r/filename.[zip]'   , 'prefix-filename-suffix.zip'     , 'dir' . DS . 'd-i-r' . DS . 'prefix-filename-suffix.zip'],
+    'URI reserved characters' => ['dir\|#[\file]&n@a(m)e+,;=.zip' , 'prefix-file-n-a-m-e-suffix.zip' , 'dir' . DS . 'prefix-file-n-a-m-e-suffix.zip'],
 ]);
 
 test('extension', function (string $input, string $result1, string $result2, string $result3, string $result4): void {
-    $output1 = (new FilenameSanitize($input))
+    $output1 = FilenameSanitize::of($input)
         ->withNewExtension('webp')
         ->get();
 
@@ -122,7 +123,7 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     expect($output2)->toBe($result2);
 
-    $output3 = (new FilenameSanitize($input))
+    $output3 = FilenameSanitize::of($input)
         ->addActualExtensionToFilename()
         ->withNewExtension('webp')
         ->get();
@@ -137,17 +138,17 @@ test('extension', function (string $input, string $result1, string $result2, str
 
     expect($output4)->toBe($result4);
 })->with([
-    'Basic'                           => ['\dir\dir\file-name.ext'       , 'file-name.webp'   , 'file-name-ext.ext'   , 'file-name-ext.webp'   , 'file-name-suffix-ext.webp'],
-    'Multibyte characters'            => ['火/车~车..票'                  , '车-车.webp'        , '车-车-票.票'           , '车-车-票.webp'         , '车-车-suffix-票.webp'],
-    'Only Extencion'                  => ['/dir\dir/.github'             , '.webp'            , '-github.github'      , '-github.webp'         , '-suffix-github.webp'],
-    'Only name'                       => ['/dir\dir/filename'            , 'filename.webp'    , 'filename'            , 'filename.webp'        , 'filename-suffix.webp'],
-    'Multi Extension'                 => ['/dir\dir/.env.test'           , '.env.webp'        , '.env-test.test'      , '.env-test.webp'       , '.env-suffix-test.webp'],
-    'URL unsafe characters'           => ['~dir/-{d}i^r/filename.[zip]'  , 'filename.webp'    , 'filename-zip.zip'    , 'filename-zip.webp'    , 'filename-suffix-zip.webp'],
-    'URI reserved characters'         => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'file-n-a-m-e.webp', 'file-n-a-m-e-zip.zip', 'file-n-a-m-e-zip.webp', 'file-n-a-m-e-suffix-zip.webp'],
+    'Basic'                   => ['\dir\dir\file-name.ext'       , 'file-name.webp'   , 'file-name-ext.ext'   , 'file-name-ext.webp'   , 'file-name-suffix-ext.webp'],
+    'Multibyte characters'    => ['火/车~车..票'                  , '车-车.webp'        , '车-车-票.票'           , '车-车-票.webp'         , '车-车-suffix-票.webp'],
+    'Only Extencion'          => ['/dir\dir/.github'             , '.webp'            , '-github.github'      , '-github.webp'         , '-suffix-github.webp'],
+    'Only name'               => ['/dir\dir/filename'            , 'filename.webp'    , 'filename'            , 'filename.webp'        , 'filename-suffix.webp'],
+    'Multi Extension'         => ['/dir\dir/.env.test'           , '.env.webp'        , '.env-test.test'      , '.env-test.webp'       , '.env-suffix-test.webp'],
+    'URL unsafe characters'   => ['~dir/-{d}i^r/filename.[zip]'  , 'filename.webp'    , 'filename-zip.zip'    , 'filename-zip.webp'    , 'filename-suffix-zip.webp'],
+    'URI reserved characters' => ['dir\|#[\file]&n@a(m)e+,;=.zip', 'file-n-a-m-e.webp', 'file-n-a-m-e-zip.zip', 'file-n-a-m-e-zip.webp', 'file-n-a-m-e-suffix-zip.webp'],
 ]);
 
 test('separator', function (string $separator, string $result): void {
-    $output = (new FilenameSanitize('file~name.ext'))
+    $output = FilenameSanitize::of('file~name.ext')
         ->customSeparator($separator)
         ->get();
 
@@ -178,20 +179,21 @@ test('separator', function (string $separator, string $result): void {
 ]);
 
 test('base directory', function (string $baseDirectory, string $filename, string $result): void {
-    $output = (new FilenameSanitize($filename))
+    $output = FilenameSanitize::of($filename)
         ->withBaseDirectory($baseDirectory)
         ->withSubdirectory()
         ->get();
 
     expect($output)->toBe($result);
 })->with([
-    'Basic'                  => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Without separator'      => ['C:/foo/bar'   , '..\dir\file-name.zip'   , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Multiple separator 1'   => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Multiple separator 2'   => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Multiple separator 3'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Multiple separator 4'   => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
-    'Unix root'              => ['\tmp\foo\\'   , 'bar\file-name.zip'      , DS . "tmp" . DS . "foo" . DS . "bar" . DS . "file-name.zip"],
+    'Basic'                => ['C:/foo/bar'   , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Without separator'    => ['C:/foo/bar'   , '..\dir\file-name.zip'   , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Multiple separator 1' => ['C:/foo/bar/'  , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Multiple separator 2' => ['C:/foo/bar/'  , '/..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Multiple separator 3' => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Multiple separator 4' => ['C:/foo/bar\\' , '\..\dir\file-name.zip'  , "C:" . DS . "foo" . DS . "bar" . DS . ".." . DS . "dir" . DS . "file-name.zip"],
+    'Unix root'            => ['\tmp\foo\\'   , 'bar\file-name.zip'      , DS . "tmp" . DS . "foo" . DS . "bar" . DS . "file-name.zip"],
+    'Bad chars in base'    => ['\t#mp\f&oo\\' , 'bar\file-name.zip'      , DS . "t#mp" . DS . "f&oo" . DS . "bar" . DS . "file-name.zip"],
 ]);
 
 test('directory to filename', function (): void {
