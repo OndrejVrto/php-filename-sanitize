@@ -158,7 +158,16 @@ FilenameSanitize::of('file#name.jpg')
 // Output: file_-_name.jpg
 ```
 
-Warning: Changing the separator can sometimes lead to unwanted side effects.
+Warning:
+Changing the separator can sometimes lead to unwanted side effects.
+Individual separator characters are removed from the beginning and end of the file name and extension.
+
+```php
+FilenameSanitize::of('file#name.ext')
+    ->customSeparator('ef')
+    ->get();
+// Output: ileefnam.xt
+```
 
 ### A combination of all functions together
 
