@@ -22,9 +22,9 @@
         "php": ">=4.0.7"
     },
     "require-dev": {
-        "php": "^8.1",
+        "php": "^8.4",
         "laravel/pint": "^1.2",
-        "pestphp/pest": "^2.26",
+        "pestphp/pest": "^5.1",
         "phpstan/phpstan": "^1.9",
         "rector/rector": "^1.0.4"
     },

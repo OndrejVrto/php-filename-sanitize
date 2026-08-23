@@ -1,5 +1,6 @@
 # IDE
 .vscode
+.idea
 
 # dependencies
 vendor
@@ -11,6 +12,7 @@ coverage
 phpunit.xml
 testbench.yaml
 .phpunit.result.cache
+.phpunit.cache
 phpstan-baseline.neon
 
 # other

@@ -197,7 +197,7 @@ FilenameSanitize::of('foo2\bar2\file-name.jpg')
 ## Testing
 
 ```bash
-composer test
+./vendor/bin/pest
 ```
 
 ## Changelog
